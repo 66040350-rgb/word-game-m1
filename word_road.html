@@ -4,18 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Word Highway: Arcade Overdrive (E1)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Kanit:wght@400;600;700&display=swap');
-
     :root {
-      --cyber-cyan: #00f2fe;
-      --cyber-magenta: #f368e0;
-      --cyber-yellow: #ff9f43;
-      --cyber-green: #10ac84;
-      --cyber-red: #ee5253;
-      --dark-chassis: #050813;
+      --neon-cyan: #00f2fe;
+      --neon-amber: #ff9f43;
+      --neon-crimson: #ee5253;
+      --neon-emerald: #10ac84;
+      --chassis-bg: #050811;
     }
-
     * {
       box-sizing: border-box;
       margin: 0;
@@ -24,9 +23,8 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
-
     body {
-      background: var(--dark-chassis);
+      background: var(--chassis-bg);
       font-family: 'Kanit', sans-serif;
       min-height: 100vh;
       display: flex;
@@ -35,107 +33,98 @@
       overflow: hidden;
       color: #fff;
     }
-
-    .arcade-chassis {
+    .cabinet-frame {
       position: relative;
       width: 100vw;
-      max-width: 520px;
+      max-width: 500px;
       height: 100vh;
-      max-height: 900px;
+      max-height: 880px;
       background: #000;
-      border: 3px solid #1a273a;
-      box-shadow: 0 0 60px rgba(0, 242, 254, 0.25);
+      border: 3px solid #142236;
+      box-shadow: 0 0 60px rgba(0, 242, 254, 0.2);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
-
-    #gameCanvas {
+    #renderCanvas {
       width: 100%;
       height: 100%;
       display: block;
     }
-
-    .cockpit-hud {
+    .flight-hud {
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
       z-index: 10;
-      padding: 12px 14px;
-      background: linear-gradient(180deg, rgba(5, 8, 19, 0.95) 0%, rgba(5, 8, 19, 0) 100%);
+      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(5, 8, 17, 0.95) 0%, rgba(5, 8, 17, 0) 100%);
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-family: 'Orbitron', monospace;
     }
-
-    .hud-gauge {
-      background: rgba(10, 20, 36, 0.85);
+    .hud-chip {
+      background: rgba(14, 26, 47, 0.85);
       border: 1px solid rgba(0, 242, 254, 0.4);
       padding: 4px 10px;
       border-radius: 8px;
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 800;
+      font-size: 0.82rem;
+      font-weight: 700;
       letter-spacing: 1px;
     }
-
-    .life-rack {
+    .hull-meter {
       display: flex;
       gap: 4px;
     }
-    .life-bar {
+    .hull-pip {
       width: 12px;
       height: 14px;
-      background: var(--cyber-red);
+      background: var(--neon-crimson);
       border-radius: 2px;
-      box-shadow: 0 0 8px var(--cyber-red);
-      transition: opacity 0.2s;
+      box-shadow: 0 0 8px var(--neon-crimson);
+      transition: all 0.2s;
     }
-    .life-bar.lost {
-      background: #334155;
+    .hull-pip.offline {
+      background: #1e293b;
       box-shadow: none;
       opacity: 0.3;
     }
-
-    .telemetry-banner {
+    .mission-telemetry {
       position: absolute;
       top: 54px;
       left: 10px;
       right: 10px;
       z-index: 10;
       background: rgba(8, 16, 32, 0.92);
-      border: 2px solid var(--cyber-cyan);
+      border: 2px solid var(--neon-cyan);
       border-radius: 12px;
       padding: 10px 14px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.8);
       backdrop-filter: blur(8px);
     }
-
-    .banner-sub {
+    .telemetry-meta {
       display: flex;
       justify-content: space-between;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-family: 'Orbitron', monospace;
-      color: var(--cyber-yellow);
+      color: var(--neon-amber);
       font-weight: 700;
       letter-spacing: 1px;
     }
-
-    .banner-title {
-      font-size: 1.05rem;
+    .telemetry-prompt {
+      font-size: 1.02rem;
       font-weight: 700;
       margin-top: 4px;
       line-height: 1.35;
       color: #ffffff;
     }
-
-    .touch-steering {
+    .touch-interface {
       position: absolute;
-      bottom: 20px;
+      bottom: 22px;
       left: 0;
       right: 0;
       z-index: 15;
@@ -144,13 +133,12 @@
       padding: 0 24px;
       pointer-events: none;
     }
-
-    .steering-paddle {
+    .pedal-btn {
       pointer-events: auto;
-      width: 82px;
-      height: 82px;
-      background: radial-gradient(circle, rgba(0, 242, 254, 0.2) 0%, rgba(8, 16, 32, 0.9) 75%);
-      border: 2px solid var(--cyber-cyan);
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.25) 0%, rgba(8, 16, 32, 0.9) 75%);
+      border: 2px solid var(--neon-cyan);
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -159,43 +147,41 @@
       cursor: pointer;
       transition: transform 0.08s;
     }
-    .steering-paddle:active {
+    .pedal-btn:active {
       transform: scale(0.92);
-      background: rgba(0, 242, 254, 0.4);
+      background: rgba(0, 242, 254, 0.45);
     }
-    .steering-paddle svg {
+    .pedal-btn svg {
       width: 36px;
       height: 36px;
       fill: #ffffff;
     }
-
-    .copilot-terminal {
+    .comm-pod {
       position: absolute;
       bottom: 115px;
       left: 12px;
       right: 12px;
       z-index: 12;
       background: #08101e;
-      border: 1px solid var(--cyber-cyan);
-      border-left: 5px solid var(--cyber-cyan);
+      border: 1px solid var(--neon-cyan);
+      border-left: 5px solid var(--neon-cyan);
       border-radius: 8px;
       padding: 10px 14px;
       display: none;
       align-items: flex-start;
       gap: 10px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-      animation: popIn 0.25s ease-out;
+      animation: podSlide 0.25s ease-out;
     }
-    @keyframes popIn {
+    @keyframes podSlide {
       from { transform: translateY(20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
-
-    .curtain-screen {
+    .game-curtain {
       position: absolute;
       inset: 0;
       z-index: 30;
-      background: rgba(4, 8, 16, 0.96);
+      background: rgba(4, 8, 16, 0.97);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -203,8 +189,7 @@
       padding: 24px;
       text-align: center;
     }
-
-    .btn-warp {
+    .warp-trigger {
       background: linear-gradient(90deg, #10ac84, #1dd1a1);
       border: none;
       color: #fff;
@@ -218,95 +203,100 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      font-family: 'Kanit', sans-serif;
     }
-    .btn-warp:active {
+    .warp-trigger:active {
       transform: scale(0.95);
     }
   </style>
 </head>
 <body>
 
-  <div class="arcade-chassis">
-    <div class="cockpit-hud">
-      <div class="hud-gauge" style="color: var(--cyber-cyan);">
-        <span>STAGE</span> <span id="hudStage">1/12</span>
+  <div class="cabinet-frame">
+    <!-- Heads-Up Display -->
+    <div class="flight-hud">
+      <div class="hud-chip" style="color: var(--neon-cyan);">
+        <span>STAGE</span> <span id="hudCpNum">1/12</span>
       </div>
-      <div class="hud-gauge" style="color: var(--cyber-yellow);">
-        <span id="hudSpeed">140</span> <span style="font-size: 0.65rem;">KM/H</span>
+      <div class="hud-chip" style="color: var(--neon-amber);">
+        <span id="hudSpd">145</span> <span style="font-size: 0.65rem;">KM/H</span>
       </div>
-      <div class="hud-gauge" style="color: #fff;">
-        <span style="font-size: 0.75rem; color: #94a3b8; margin-right: 4px;">SCORE</span>
-        <span id="hudScore">0</span>
+      <div class="hud-chip" style="color: #fff;">
+        <span style="color:#94a3b8; font-size:0.75rem; margin-right:4px;">SCORE</span>
+        <span id="hudScoreVal">0</span>
       </div>
-      <div class="hud-gauge">
-        <div class="life-rack" id="hudLives">
-          <div class="life-bar"></div>
-          <div class="life-bar"></div>
-          <div class="life-bar"></div>
+      <div class="hud-chip">
+        <div class="hull-meter" id="hullPips">
+          <div class="hull-pip"></div>
+          <div class="hull-pip"></div>
+          <div class="hull-pip"></div>
         </div>
       </div>
     </div>
 
-    <div class="telemetry-banner" id="telemetryBanner">
-      <div class="banner-sub">
-        <span id="stageCategory">CHECKPOINT 1 // INTERFACE</span>
-        <span>DRIVE TO CORRECT GATE</span>
+    <!-- แถบดาวเทียมโจทย์ -->
+    <div class="mission-telemetry" id="telemetryBar">
+      <div class="telemetry-meta">
+        <span id="metaTopic">CHECKPOINT 1 // INTERFACE</span>
+        <span>DRIVE TO GATE</span>
       </div>
-      <div class="banner-title" id="stageQuestion">กำลังรับสัญญาณดาวเทียม...</div>
+      <div class="telemetry-prompt" id="promptText">กำลังเชื่อมต่อฐานข้อมูลจราจร...</div>
     </div>
 
-    <canvas id="gameCanvas"></canvas>
+    <!-- Canvas Engine -->
+    <canvas id="renderCanvas"></canvas>
 
-    <div class="copilot-terminal" id="copilotTerminal">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--cyber-cyan)" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
+    <!-- AI Copilot Radio Terminal -->
+    <div class="comm-pod" id="copilotPod">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
       <div>
-        <div style="font-weight: 700; color: var(--cyber-cyan); font-size: 0.85rem; font-family: 'Orbitron';">AI COPILOT RADIO</div>
-        <div id="aiHintLog" style="color: #cbd5e1; font-size: 0.9rem; margin-top: 2px;">คำแนะนำจราจร</div>
+        <div style="font-weight: 700; color: var(--neon-cyan); font-size: 0.8rem; font-family: 'Orbitron';">AI COPILOT RADIO</div>
+        <div id="copilotMsg" style="color: #cbd5e1; font-size: 0.9rem; margin-top: 2px;">คำแนะนำจราจร</div>
       </div>
     </div>
 
-    <div class="touch-steering">
-      <div class="steering-paddle" id="paddleLeft">
+    <!-- แผงสัมผัสพวงมาลัยซ้าย-ขวา -->
+    <div class="touch-interface">
+      <div class="pedal-btn" id="steerLeft">
         <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
       </div>
-      <div class="steering-paddle" id="paddleRight">
+      <div class="pedal-btn" id="steerRight">
         <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
       </div>
     </div>
 
-    <div class="curtain-screen" id="screenStart">
-      <div style="width: 60px; height: 60px; border: 2px solid var(--cyber-cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 0 20px rgba(0,242,254,0.4);">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="var(--cyber-cyan)"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/><circle cx="7.5" cy="14.5" r="1.5"/><circle cx="16.5" cy="14.5" r="1.5"/></svg>
+    <!-- Curtain: Start Screen -->
+    <div class="game-curtain" id="startCurtain">
+      <div style="width: 64px; height: 64px; border: 2px solid var(--neon-cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 0 25px rgba(0,242,254,0.35);">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="var(--neon-cyan)"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/><circle cx="7.5" cy="14.5" r="1.5"/><circle cx="16.5" cy="14.5" r="1.5"/></svg>
       </div>
-      <h1 style="font-family: 'Orbitron'; font-size: 2.3rem; font-style: italic; text-shadow: 0 0 25px var(--cyber-cyan); color: #fff;">WORD ROAD</h1>
+      <h1 style="font-family: 'Orbitron'; font-size: 2.2rem; font-style: italic; text-shadow: 0 0 25px var(--neon-cyan); color: #fff;">WORD ROAD</h1>
       <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; max-width: 320px; margin-top: 6px;">
         ขับรถลุย 12 Checkpoints ของ Microsoft Word ม.1<br>
-        <strong>"เลี้ยวรถพุ่งลอดเข้าซุ้มประตูคำตอบที่ถูกต้องเพื่อผ่านด่าน"</strong>
+        <strong>"เลี้ยวรถมุดเข้าช่องประตูคำตอบที่ถูกต้องเพื่อผ่านด่าน"</strong>
       </p>
-      <div style="margin-top: 14px; font-size: 0.85rem; color: var(--cyber-yellow);">
-        ควบคุมด้วยปุ่มลูกศรบนหน้าจอ หรือกด A / D / แป้นลูกศร ซ้าย-ขวา
+      <div style="margin-top: 14px; font-size: 0.85rem; color: var(--neon-amber);">
+        ควบคุมด้วยปุ่มลูกศรบนหน้าจอ หรือกด A / D / ลูกศร ซ้าย-ขวา บนคีย์บอร์ด
       </div>
-      <button class="btn-warp" onclick="bootArcadeEngine()">
+      <button class="warp-trigger" onclick="igniteEngine()">
         <span>START MISSION</span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
       </button>
     </div>
 
-    <div class="curtain-screen" id="screenEnd" style="display: none;">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="var(--cyber-green)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-      <h1 style="font-family: 'Orbitron'; font-size: 2rem; color: var(--cyber-green); text-shadow: 0 0 25px var(--cyber-green); margin-top: 8px;">COMPLETED</h1>
-      
-      <div style="background: rgba(14,26,47,0.9); border: 2px solid var(--cyber-yellow); border-radius: 14px; padding: 20px; width: 85%; margin: 16px 0;">
-        <div style="font-size: 0.8rem; color: var(--cyber-yellow); letter-spacing: 2px; font-family: 'Orbitron';">DRIVER LICENSE RECORD</div>
+    <!-- Curtain: End Screen -->
+    <div class="game-curtain" id="endCurtain" style="display: none;">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="var(--neon-emerald)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      <h1 style="font-family: 'Orbitron'; font-size: 2rem; color: var(--neon-emerald); text-shadow: 0 0 25px var(--neon-emerald); margin-top: 8px;">COMPLETED</h1>
+      <div style="background: rgba(14,26,47,0.9); border: 2px solid var(--neon-amber); border-radius: 14px; padding: 20px; width: 85%; margin: 16px 0;">
+        <div style="font-size: 0.8rem; color: var(--neon-amber); letter-spacing: 2px; font-family: 'Orbitron';">DRIVER LICENSE RECORD</div>
         <div style="font-size: 2.8rem; font-weight: 900; color: #fff; margin: 4px 0;" id="finalScoreVal">12 / 12</div>
-        <div style="font-size: 0.95rem; color: var(--cyber-green); font-weight: 700;" id="finalPctVal">ประสิทธิภาพ E1 = 100%</div>
+        <div style="font-size: 0.95rem; color: var(--neon-emerald); font-weight: 700;" id="finalPctVal">ประสิทธิภาพ E1 = 100%</div>
       </div>
-
       <p style="font-size: 0.9rem; color: #94a3b8; max-width: 320px;">
         คุณได้รับสิทธิ์เข้าทำแบบทดสอบรวบยอด 20 ข้อใน <strong>Word Jump Game (E2)</strong>
       </p>
-
-      <button class="btn-warp" onclick="alert('เตรียมเชื่อมต่อไปยังสนามทดสอบ Word Jump Game (E2)')">
+      <button class="warp-trigger" onclick="alert('ส่งคะแนนเข้าสู่ระบบประเมินผล Word Jump Game (E2)')">
         <span>เข้าสู่สนามสอบ E2</span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
       </button>
@@ -314,237 +304,237 @@
   </div>
 
   <script>
-    const SoundEngine = {
+    // 1. DYNAMIC AUDIO SUBSYSTEM
+    const SoundLab = {
       ctx: null,
       engineOsc: null,
-      engineGain: null,
+      gainNode: null,
       init() {
         if (!this.ctx) {
           this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-          this.startEngineLoop();
+          this.startLoop();
         }
       },
-      startEngineLoop() {
+      startLoop() {
         try {
           this.engineOsc = this.ctx.createOscillator();
-          this.engineGain = this.ctx.createGain();
+          this.gainNode = this.ctx.createGain();
           this.engineOsc.type = 'sawtooth';
           this.engineOsc.frequency.setValueAtTime(45, this.ctx.currentTime);
-          this.engineGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
-          this.engineOsc.connect(this.engineGain);
-          this.engineGain.connect(this.ctx.destination);
+          this.gainNode.gain.setValueAtTime(0.035, this.ctx.currentTime);
+          this.engineOsc.connect(this.gainNode);
+          this.gainNode.connect(this.ctx.destination);
           this.engineOsc.start();
         } catch(e) {}
       },
-      setEnginePitch(speedRatio) {
+      modulatePitch(ratio) {
         if (this.engineOsc && this.ctx) {
-          this.engineOsc.frequency.setTargetAtTime(40 + speedRatio * 90, this.ctx.currentTime, 0.05);
+          this.engineOsc.frequency.setTargetAtTime(45 + ratio * 85, this.ctx.currentTime, 0.05);
         }
       },
-      beep(freq, dur, type = 'sine') {
+      pulseTone(freq, dur, type = 'sine') {
         try {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + dur);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + dur);
+          const o = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          o.type = type;
+          o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          g.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          g.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + dur);
+          o.connect(g);
+          g.connect(this.ctx.destination);
+          o.start();
+          o.stop(this.ctx.currentTime + dur);
         } catch(e) {}
       },
-      steer() { this.beep(220, 0.06, 'triangle'); },
-      passGate() {
-        this.beep(523, 0.08, 'square');
-        setTimeout(() => this.beep(659, 0.08, 'square'), 70);
-        setTimeout(() => this.beep(880, 0.2, 'square'), 140);
+      steer() { this.pulseTone(220, 0.05, 'triangle'); },
+      pass() {
+        this.pulseTone(523, 0.08, 'square');
+        setTimeout(() => this.pulseTone(659, 0.08, 'square'), 70);
+        setTimeout(() => this.pulseTone(880, 0.2, 'square'), 140);
       },
-      crashGate() {
-        this.beep(160, 0.15, 'sawtooth');
-        setTimeout(() => this.beep(90, 0.35, 'sawtooth'), 120);
+      crash() {
+        this.pulseTone(160, 0.15, 'sawtooth');
+        setTimeout(() => this.pulseTone(90, 0.35, 'sawtooth'), 120);
       }
     };
 
-    const checkpointMissions = [
-      { cp: 1, cat: "CP 1 // แถบคำสั่ง", q: "คำสั่งแทรกรูปภาพและตาราง อยู่ภายใต้เมนูแท็บใด?", lanes: ["Home", "Insert", "Layout"], correct: 1, hint: "แท็บ Insert (แทรก) คือหมวดหมู่ที่รวบรวมคำสั่งสำหรับเพิ่มองค์ประกอบภายนอก" },
-      { cp: 2, cat: "CP 2 // การบันทึกแฟ้ม", q: "ปุ่มคีย์ลัดสำหรับบันทึกงาน (Save) ทันทีคือข้อใด?", lanes: ["Ctrl + C", "Ctrl + Z", "Ctrl + S"], correct: 2, hint: "Ctrl + S เป็นคีย์ลัดสำหรับ Save ช่วยป้องกันข้อมูลสูญหาย" },
-      { cp: 3, cat: "CP 3 // แบบอักษร", q: "ต้องการทำตัวหนังสือให้เป็น 'ตัวหนา' ต้องเลือกไอคอนใด?", lanes: ["ปุ่ม B", "ปุ่ม I", "ปุ่ม U"], correct: 0, hint: "สัญลักษณ์ B ย่อมาจาก Bold หมายถึงตัวอักษรหนา" },
-      { cp: 4, cat: "CP 4 // การเน้นข้อความ", q: "คำสั่งขีดเส้นใต้ข้อความ (Underline) ตรงกับสัญลักษณ์ใด?", lanes: ["ปุ่ม A", "ปุ่ม U", "ปุ่ม I"], correct: 1, hint: "ปุ่ม U ย่อมาจาก Underline ใช้สำหรับขีดเส้นใต้" },
-      { cp: 5, cat: "CP 5 // การจัดย่อหน้า", q: "จัดหัวข้อให้อยู่ 'กึ่งกลางหน้ากระดาษ' ใช้คำสั่งใด?", lanes: ["Center", "Align Left", "Justify"], correct: 0, hint: "คำสั่ง Center (หรือ Ctrl + E) จัดตำแหน่งให้อยู่กึ่งกลางหน้ากระดาษพอดี" },
-      { cp: 6, cat: "CP 6 // ลำดับหัวข้อ", q: "ต้องการทำขั้นตอน 1, 2, 3 เรียงลำดับ ควรเลือกใช้เครื่องมือใด?", lanes: ["Bullets", "Shapes", "Numbering"], correct: 2, hint: "เมื่อมีลำดับขั้นตอนก่อนหลังชัดเจน ควรเลือกใช้ Numbering" },
-      { cp: 7, cat: "CP 7 // การจัดการรูปภาพ", q: "ต้องการคลิกลากย้ายรูปภาพได้อย่างอิสระ ต้องปรับคำสั่งใด?", lanes: ["Crop", "Wrap Text", "Effects"], correct: 1, hint: "คำสั่ง Wrap Text (ตัดข้อความ) ปรับให้ภาพลอยตัวเพื่อย้ายตำแหน่งได้อิสระ" },
-      { cp: 8, cat: "CP 8 // ตารางเอกสาร", q: "ต้องการรวมช่องตาราง 2 ช่องเข้าด้วยกันเป็นช่องเดียว ใช้คำสั่งใด?", lanes: ["Merge Cells", "Split Cells", "Insert Row"], correct: 0, hint: "Merge Cells ทำหน้าที่ผสานเซลล์ตารางที่เลือกเข้าด้วยกัน" },
-      { cp: 9, cat: "CP 9 // ตั้งค่าหน้ากระดาษ", q: "เปลี่ยนกระดาษเป็นแนวนอน (Landscape) ต้องเลือกคำสั่งใด?", lanes: ["Size", "Margins", "Orientation"], correct: 2, hint: "Orientation ในแท็บ Layout ใช้ปรับเปลี่ยนแนวกระดาษเป็นแนวตั้งหรือแนวนอน" },
-      { cp: 10, cat: "CP 10 // ตรวจสอบเอกสาร", q: "เส้นใต้หยัก 'สีแดง' ใต้คำที่พิมพ์ หมายถึงสิ่งใด?", lanes: ["สะกดคำผิด", "เว้นวรรคผิด", "ฟอนต์เพี้ยน"], correct: 0, hint: "เส้นหยักสีแดงบ่งบอกว่าระบบตรวจพบคำสะกดไม่ถูกต้องตามพจนานุกรม" },
-      { cp: 11, cat: "CP 11 // การพิมพ์งาน", q: "ปุ่มคีย์ลัดสำหรับเปิดหน้าต่างสั่งพิมพ์งาน (Print) คือข้อใด?", lanes: ["Ctrl + N", "Ctrl + P", "Ctrl + O"], correct: 1, hint: "Ctrl + P ใช้สำหรับเปิดเมนู Print สั่งพิมพ์งานออกเครื่องพิมพ์" },
-      { cp: 12, cat: "CP 12 // ส่งออกเอกสาร", q: "บันทึกรายงานเป็นไฟล์นามสกุลใด เพื่อล็อกการจัดหน้าไม่ให้เลื่อนหลุด?", lanes: [".docx", ".txt", ".pdf"], correct: 2, hint: "ไฟล์ .pdf เป็นมาตรฐานเอกสารคงรูปที่การจัดหน้าจะไม่เลื่อนเมื่อเปิดต่างเครื่อง" }
+    // 2. CHECKPOINTS DATA
+    const courseMissions = [
+      { cp: 1, cat: "CHECKPOINT 1 // แถบคำสั่ง", q: "คำสั่งแทรกรูปภาพและตาราง อยู่ภายใต้เมนูแท็บใด?", lanes: ["Home", "Insert", "Layout"], correct: 1, hint: "แท็บ Insert (แทรก) คือหมวดหมู่คำสั่งสำหรับเพิ่มองค์ประกอบภายนอก" },
+      { cp: 2, cat: "CHECKPOINT 2 // การบันทึกแฟ้ม", q: "ปุ่มคีย์ลัดสำหรับบันทึกงาน (Save) ทันทีคือข้อใด?", lanes: ["Ctrl + C", "Ctrl + Z", "Ctrl + S"], correct: 2, hint: "Ctrl + S ย่อมาจาก Save ช่วยบันทึกงานป้องกันข้อมูลสูญหาย" },
+      { cp: 3, cat: "CHECKPOINT 3 // แบบอักษร", q: "ต้องการทำตัวหนังสือให้เป็น 'ตัวหนา' ต้องเลือกไอคอนใด?", lanes: ["ปุ่ม B", "ปุ่ม I", "ปุ่ม U"], correct: 0, hint: "สัญลักษณ์ B ย่อมาจาก Bold หมายถึงตัวหนา" },
+      { cp: 4, cat: "CHECKPOINT 4 // การเน้นข้อความ", q: "คำสั่งขีดเส้นใต้ข้อความ (Underline) ตรงกับสัญลักษณ์ใด?", lanes: ["ปุ่ม A", "ปุ่ม U", "ปุ่ม I"], correct: 1, hint: "ปุ่ม U ย่อมาจาก Underline ใช้ขีดเส้นใต้ตัวหนังสือ" },
+      { cp: 5, cat: "CHECKPOINT 5 // การจัดย่อหน้า", q: "จัดหัวข้อให้อยู่ 'กึ่งกลางหน้ากระดาษ' ใช้คำสั่งใด?", lanes: ["Center", "Align Left", "Justify"], correct: 0, hint: "คำสั่ง Center (หรือ Ctrl + E) จัดตำแหน่งให้อยู่กึ่งกลางพอดี" },
+      { cp: 6, cat: "CHECKPOINT 6 // ลำดับหัวข้อ", q: "ต้องการทำขั้นตอน 1, 2, 3 เรียงลำดับ ควรเลือกใช้เครื่องมือใด?", lanes: ["Bullets", "Shapes", "Numbering"], correct: 2, hint: "เมื่อมีลำดับขั้นตอนก่อนหลังชัดเจน ควรเลือกใช้ Numbering" },
+      { cp: 7, cat: "CHECKPOINT 7 // การจัดการรูปภาพ", q: "ต้องการคลิกลากย้ายรูปภาพได้อย่างอิสระ ต้องปรับคำสั่งใด?", lanes: ["Crop", "Wrap Text", "Effects"], correct: 1, hint: "Wrap Text (ตัดข้อความ) ปรับให้ภาพลอยตัวเพื่อย้ายตำแหน่งได้อิสระ" },
+      { cp: 8, cat: "CHECKPOINT 8 // ตารางเอกสาร", q: "ต้องการรวมช่องตาราง 2 ช่องเข้าด้วยกันเป็นช่องเดียว ใช้คำสั่งใด?", lanes: ["Merge Cells", "Split Cells", "Insert Row"], correct: 0, hint: "Merge Cells ทำหน้าที่ผสานเซลล์ตารางที่เลือกเข้าด้วยกัน" },
+      { cp: 9, cat: "CHECKPOINT 9 // ตั้งค่าหน้ากระดาษ", q: "เปลี่ยนกระดาษเป็นแนวนอน (Landscape) ต้องเลือกคำสั่งใด?", lanes: ["Size", "Margins", "Orientation"], correct: 2, hint: "Orientation ในแท็บ Layout ใช้ปรับแนวกระดาษเป็นแนวตั้งหรือแนวนอน" },
+      { cp: 10, cat: "CHECKPOINT 10 // ตรวจสอบเอกสาร", q: "เส้นใต้หยัก 'สีแดง' ใต้คำที่พิมพ์ หมายถึงสิ่งใด?", lanes: ["สะกดคำผิด", "เว้นวรรคผิด", "ฟอนต์เพี้ยน"], correct: 0, hint: "เส้นหยักสีแดงบ่งบอกว่าโปรแกรมตรวจพบคำสะกดไม่ถูกต้อง" },
+      { cp: 11, cat: "CHECKPOINT 11 // การพิมพ์งาน", q: "ปุ่มคีย์ลัดสำหรับเปิดหน้าต่างสั่งพิมพ์งาน (Print) คือข้อใด?", lanes: ["Ctrl + N", "Ctrl + P", "Ctrl + O"], correct: 1, hint: "Ctrl + P ใช้สำหรับเปิดเมนู Print สั่งพิมพ์งานออกเครื่องพิมพ์" },
+      { cp: 12, cat: "CHECKPOINT 12 // ส่งออกเอกสาร", q: "บันทึกรายงานเป็นไฟล์นามสกุลใด เพื่อล็อกการจัดหน้าไม่ให้เลื่อนหลุด?", lanes: [".docx", ".txt", ".pdf"], correct: 2, hint: "ไฟล์ .pdf เป็นมาตรฐานเอกสารคงรูปที่การจัดหน้าจะไม่เลื่อนเมื่อเปิดต่างเครื่อง" }
     ];
 
-    const canvas = document.getElementById('gameCanvas');
+    // 3. PIPELINE SIMULATION
+    const canvas = document.getElementById('renderCanvas');
     const ctx = canvas.getContext('2d');
 
-    let currentStage = 0;
+    let curStage = 0;
     let score = 0;
-    let lives = 3;
-    let isRunning = false;
-    let isGateLocked = false;
+    let hull = 3;
+    let active = false;
+    let gateLock = false;
 
-    let playerX = 0;
-    let steerVelocity = 0;
-    let speed = 140;
+    let posX = 0;
+    let inertia = 0;
+    let velocity = 145;
     let gateDistance = 0;
-    let roadCurve = 0;
-    let targetCurve = 0.4;
-    let roadZOffset = 0;
+    let curveAngle = 0;
+    let targetCurve = 0.35;
+    let roadStripeTick = 0;
 
-    function resizeChassis() {
+    function resizeFrame() {
       canvas.width = canvas.parentElement.clientWidth;
       canvas.height = canvas.parentElement.clientHeight;
     }
-    window.addEventListener('resize', resizeChassis);
-    resizeChassis();
+    window.addEventListener('resize', resizeFrame);
+    resizeFrame();
 
-    function updateHudData() {
-      const s = checkpointMissions[currentStage];
-      document.getElementById('hudStage').innerText = `${s.cp}/12`;
-      document.getElementById('hudScore').innerText = score;
-      document.getElementById('hudSpeed').innerText = Math.round(speed);
-      document.getElementById('stageCategory').innerText = s.cat;
-      document.getElementById('stageQuestion').innerText = s.q;
+    function syncTelemetry() {
+      const data = courseMissions[curStage];
+      document.getElementById('hudCpNum').innerText = `${data.cp}/12`;
+      document.getElementById('hudScoreVal').innerText = score;
+      document.getElementById('hudSpd').innerText = Math.round(velocity);
+      document.getElementById('metaTopic').innerText = data.cat;
+      document.getElementById('promptText').innerText = data.q;
 
-      const bars = document.querySelectorAll('.life-bar');
-      bars.forEach((b, idx) => {
-        if (idx < lives) b.classList.remove('lost');
-        else b.classList.add('lost');
+      const pips = document.querySelectorAll('.hull-pip');
+      pips.forEach((p, idx) => {
+        if (idx < hull) p.classList.remove('offline');
+        else p.classList.add('offline');
       });
     }
 
-    let steerLeft = false;
-    let steerRight = false;
+    let leftEngaged = false;
+    let rightEngaged = false;
 
-    function bindControls() {
-      const pL = document.getElementById('paddleLeft');
-      const pR = document.getElementById('paddleRight');
+    function registerInputs() {
+      const pL = document.getElementById('steerLeft');
+      const pR = document.getElementById('steerRight');
 
-      pL.addEventListener('pointerdown', (e) => { e.preventDefault(); steerLeft = true; SoundEngine.steer(); });
-      pL.addEventListener('pointerup', () => steerLeft = false);
-      pL.addEventListener('pointerleave', () => steerLeft = false);
+      pL.addEventListener('pointerdown', (e) => { e.preventDefault(); leftEngaged = true; SoundLab.steer(); });
+      pL.addEventListener('pointerup', () => leftEngaged = false);
+      pL.addEventListener('pointerleave', () => leftEngaged = false);
 
-      pR.addEventListener('pointerdown', (e) => { e.preventDefault(); steerRight = true; SoundEngine.steer(); });
-      pR.addEventListener('pointerup', () => steerRight = false);
-      pR.addEventListener('pointerleave', () => steerRight = false);
+      pR.addEventListener('pointerdown', (e) => { e.preventDefault(); rightEngaged = true; SoundLab.steer(); });
+      pR.addEventListener('pointerup', () => rightEngaged = false);
+      pR.addEventListener('pointerleave', () => rightEngaged = false);
 
       window.addEventListener('keydown', (e) => {
-        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { steerLeft = true; SoundEngine.steer(); }
-        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { steerRight = true; SoundEngine.steer(); }
+        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { leftEngaged = true; SoundLab.steer(); }
+        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { rightEngaged = true; SoundLab.steer(); }
       });
       window.addEventListener('keyup', (e) => {
-        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") steerLeft = false;
-        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") steerRight = false;
+        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") leftEngaged = false;
+        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") rightEngaged = false;
       });
     }
-    bindControls();
+    registerInputs();
 
-    function gameLoop() {
-      if (!isRunning) return;
+    // 4. SCANLINE RENDERING ENGINE
+    function renderPipeline() {
+      if (!active) return;
 
       const w = canvas.width;
       const h = canvas.height;
-      const horizon = h * 0.48;
+      const horizonY = h * 0.48;
 
       ctx.clearRect(0, 0, w, h);
 
-      if (steerLeft) steerVelocity -= 0.0035;
-      if (steerRight) steerVelocity += 0.0035;
-      steerVelocity *= 0.88;
-      playerX += steerVelocity;
-      playerX = Math.max(-0.95, Math.min(0.95, playerX));
+      if (leftEngaged) inertia -= 0.0035;
+      if (rightEngaged) inertia += 0.0035;
+      inertia *= 0.88;
+      posX += inertia;
+      posX = Math.max(-0.95, Math.min(0.95, posX));
 
-      roadCurve += (targetCurve - roadCurve) * 0.02;
+      curveAngle += (targetCurve - curveAngle) * 0.02;
       if (Math.random() < 0.01) targetCurve = (Math.random() - 0.5) * 1.2;
 
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, horizon);
-      skyGrad.addColorStop(0, '#030712');
-      skyGrad.addColorStop(0.7, '#07162c');
-      skyGrad.addColorStop(1, '#00f2fe');
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, w, horizon);
+      // Horizon Sky
+      const sky = ctx.createLinearGradient(0, 0, 0, horizonY);
+      sky.addColorStop(0, '#020610');
+      sky.addColorStop(0.8, '#081730');
+      sky.addColorStop(1, '#00f2fe');
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, w, horizonY);
 
-      ctx.fillStyle = '#060b14';
-      ctx.fillRect(0, horizon, w, h - horizon);
+      // Scanline 3D Road
+      roadStripeTick = (roadStripeTick + velocity * 0.001) % 1;
+      const totalSlices = 75;
 
-      roadZOffset = (roadZOffset + speed * 0.001) % 1;
-      const lines = 70;
+      for (let i = totalSlices; i > 0; i--) {
+        const p = i / totalSlices;
+        const nextP = (i - 1) / totalSlices;
+        const y1 = horizonY + (h - horizonY) * Math.pow(nextP, 2.2);
+        const y2 = horizonY + (h - horizonY) * Math.pow(p, 2.2);
+        const bandH = y2 - y1;
+        if (bandH <= 0) continue;
 
-      for (let i = lines; i > 0; i--) {
-        const p = i / lines;
-        const nextP = (i - 1) / lines;
-        const y1 = horizon + (h - horizon) * Math.pow(nextP, 2.2);
-        const y2 = horizon + (h - horizon) * Math.pow(p, 2.2);
-        const bandHeight = y2 - y1;
+        const cX1 = (w * 0.5) + (Math.pow(nextP, 2) * curveAngle * (w * 0.35)) - (posX * w * 0.25 * nextP);
+        const cX2 = (w * 0.5) + (Math.pow(p, 2) * curveAngle * (w * 0.35)) - (posX * w * 0.25 * p);
 
-        if (bandHeight <= 0) continue;
+        const rW1 = (w * 0.22) + (w * 0.82) * Math.pow(nextP, 2.2);
+        const rW2 = (w * 0.22) + (w * 0.82) * Math.pow(p, 2.2);
 
-        const curveShift1 = Math.pow(nextP, 2) * roadCurve * (w * 0.35);
-        const curveShift2 = Math.pow(p, 2) * roadCurve * (w * 0.35);
+        const isEven = ((i + Math.floor(roadStripeTick * 10)) % 2 === 0);
 
-        const roadW1 = (w * 0.22) + (w * 0.82) * Math.pow(nextP, 2.2);
-        const roadW2 = (w * 0.22) + (w * 0.82) * Math.pow(p, 2.2);
+        ctx.fillStyle = isEven ? '#08111d' : '#050a12';
+        ctx.fillRect(0, y1, w, bandH);
 
-        const cX1 = (w * 0.5) + curveShift1 - (playerX * w * 0.25 * nextP);
-        const cX2 = (w * 0.5) + curveShift2 - (playerX * w * 0.25 * p);
+        // Kerbs
+        ctx.fillStyle = isEven ? '#f368e0' : '#1e293b';
+        fillQuad(cX1, y1, rW1 * 1.15, cX2, y2, rW2 * 1.15);
 
-        const isStripe = ((i + Math.floor(roadZOffset * 10)) % 2 === 0);
+        // Road Surface
+        ctx.fillStyle = isEven ? '#141e2e' : '#101926';
+        fillQuad(cX1, y1, rW1, cX2, y2, rW2);
 
-        ctx.fillStyle = isStripe ? '#08111d' : '#050a12';
-        ctx.fillRect(0, y1, w, bandHeight);
-
-        const kerbW1 = roadW1 * 1.15;
-        const kerbW2 = roadW2 * 1.15;
-        ctx.fillStyle = isStripe ? '#f368e0' : '#1e293b';
-        drawTrapezoid(cX1, y1, kerbW1, cX2, y2, kerbW2);
-
-        ctx.fillStyle = isStripe ? '#141e2e' : '#101926';
-        drawTrapezoid(cX1, y1, roadW1, cX2, y2, roadW2);
-
-        if (isStripe) {
+        // Lane Lines
+        if (isEven) {
           ctx.fillStyle = '#ff9f43';
-          const lineW1 = Math.max(1, roadW1 * 0.015);
-          const lineW2 = Math.max(1, roadW2 * 0.015);
-          drawTrapezoid(cX1 - roadW1 * 0.33, y1, lineW1, cX2 - roadW2 * 0.33, y2, lineW2);
-          drawTrapezoid(cX1 + roadW1 * 0.33, y1, lineW1, cX2 + roadW2 * 0.33, y2, lineW2);
+          const lineW1 = Math.max(1, rW1 * 0.015);
+          const lineW2 = Math.max(1, rW2 * 0.015);
+          fillQuad(cX1 - rW1 * 0.33, y1, lineW1, cX2 - rW2 * 0.33, y2, lineW2);
+          fillQuad(cX1 + rW1 * 0.33, y1, lineW1, cX2 + rW2 * 0.33, y2, lineW2);
         }
       }
 
-      gateDistance += (speed * 0.00008);
-      const stageData = checkpointMissions[currentStage];
+      // Checkpoint Gates
+      gateDistance += (velocity * 0.00008);
+      const stage = courseMissions[curStage];
       const gateScale = Math.pow(gateDistance, 2.5);
 
       if (gateDistance > 0.15 && gateDistance < 0.98) {
-        const gateY = horizon + (h - horizon) * gateScale;
-        const gateRoadW = (w * 0.22) + (w * 0.82) * gateScale;
-        const gateCX = (w * 0.5) + (Math.pow(gateDistance, 2) * roadCurve * (w * 0.35)) - (playerX * w * 0.25 * gateDistance);
-
-        const laneWidth = gateRoadW / 3;
-        const startX = gateCX - gateRoadW * 0.5;
+        const gY = horizonY + (h - horizonY) * gateScale;
+        const gRoadW = (w * 0.22) + (w * 0.82) * gateScale;
+        const gCX = (w * 0.5) + (Math.pow(gateDistance, 2) * curveAngle * (w * 0.35)) - (posX * w * 0.25 * gateDistance);
+        const laneW = gRoadW / 3;
+        const startX = gCX - gRoadW * 0.5;
 
         ctx.strokeStyle = '#00f2fe';
         ctx.lineWidth = Math.max(2, 6 * gateScale);
-        ctx.strokeRect(startX, gateY - 70 * gateScale, gateRoadW, 70 * gateScale);
+        ctx.strokeRect(startX, gY - 70 * gateScale, gRoadW, 70 * gateScale);
 
-        stageData.lanes.forEach((txt, idx) => {
-          const boxX = startX + laneWidth * idx + laneWidth * 0.05;
-          const boxW = laneWidth * 0.9;
-          const boxH = Math.max(18, 55 * gateScale);
-          const boxY = gateY - boxH - (10 * gateScale);
+        stage.lanes.forEach((txt, idx) => {
+          const bX = startX + laneW * idx + laneW * 0.05;
+          const bW = laneW * 0.9;
+          const bH = Math.max(18, 55 * gateScale);
+          const bY = gY - bH - (10 * gateScale);
 
-          ctx.fillStyle = (idx === stageData.correct) ? 'rgba(16, 172, 132, 0.92)' : 'rgba(15, 23, 42, 0.92)';
+          ctx.fillStyle = (idx === stage.correct) ? 'rgba(16, 172, 132, 0.92)' : 'rgba(15, 23, 42, 0.92)';
           ctx.strokeStyle = '#00f2fe';
           ctx.lineWidth = Math.max(1, 3 * gateScale);
           ctx.beginPath();
-          ctx.roundRect(boxX, boxY, boxW, boxH, 6 * gateScale);
+          ctx.roundRect(bX, bY, bW, bH, 6 * gateScale);
           ctx.fill();
           ctx.stroke();
 
@@ -552,21 +542,22 @@
           ctx.font = `bold ${Math.max(10, 16 * gateScale)}px Kanit`;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(txt, boxX + boxW * 0.5, boxY + boxH * 0.5);
+          ctx.fillText(txt, bX + bW * 0.5, bY + bH * 0.5);
         });
       }
 
-      if (gateDistance >= 0.88 && !isGateLocked) {
-        evaluateGateCollision();
+      if (gateDistance >= 0.88 && !gateLock) {
+        resolveCollision();
       }
 
-      drawProSportCar(w * 0.5, h - 85, steerVelocity);
-      SoundEngine.setEnginePitch(speed / 200);
+      // Sports Car Rendering
+      renderCar(w * 0.5, h - 85, inertia);
+      SoundLab.modulatePitch(velocity / 200);
 
-      requestAnimationFrame(gameLoop);
+      requestAnimationFrame(renderPipeline);
     }
 
-    function drawTrapezoid(x1, y1, w1, x2, y2, w2) {
+    function fillQuad(x1, y1, w1, x2, y2, w2) {
       ctx.beginPath();
       ctx.moveTo(x1 - w1 * 0.5, y1);
       ctx.lineTo(x1 + w1 * 0.5, y1);
@@ -576,7 +567,7 @@
       ctx.fill();
     }
 
-    function drawProSportCar(x, y, steer) {
+    function renderCar(x, y, steer) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(steer * 2.2);
@@ -586,10 +577,12 @@
       ctx.ellipse(0, 18, 38, 12, 0, 0, Math.PI * 2);
       ctx.fill();
 
+      // Nitrous Tail Flame
       ctx.fillStyle = '#00f2fe';
       ctx.fillRect(-18, 20, 7, 8 + Math.random() * 10);
       ctx.fillRect(11, 20, 7, 8 + Math.random() * 10);
 
+      // Chassis & Wheels
       ctx.fillStyle = '#080d14';
       ctx.fillRect(-34, 0, 8, 18);
       ctx.fillRect(26, 0, 8, 18);
@@ -624,1586 +617,66 @@
       ctx.restore();
     }
 
-    function evaluateGateCollision() {
-      isGateLocked = true;
-      const s = checkpointMissions[currentStage];
+    function resolveCollision() {
+      gateLock = true;
+      const s = courseMissions[curStage];
 
-      let chosenLane = 1;
-      if (playerX < -0.33) chosenLane = 0;
-      else if (playerX > 0.33) chosenLane = 2;
+      let lane = 1;
+      if (posX < -0.33) lane = 0;
+      else if (posX > 0.33) lane = 2;
 
-      const isCorrect = (chosenLane === s.correct);
-      const copilotTerminal = document.getElementById('copilotTerminal');
-      const aiHintLog = document.getElementById('aiHintLog');
+      const isPass = (lane === s.correct);
+      const pod = document.getElementById('copilotPod');
+      const msg = document.getElementById('copilotMsg');
 
-      if (isCorrect) {
-        SoundEngine.passGate();
+      if (isPass) {
+        SoundLab.pass();
         score++;
-        speed = Math.min(220, speed + 15);
-        updateHudData();
+        velocity = Math.min(220, velocity + 15);
+        syncTelemetry();
       } else {
-        SoundEngine.crashGate();
-        lives = Math.max(0, lives - 1);
-        speed = Math.max(90, speed - 35);
-        updateHudData();
-
-        aiHintLog.innerText = s.hint;
-        copilotTerminal.style.display = 'flex';
+        SoundLab.crash();
+        hull = Math.max(0, hull - 1);
+        velocity = Math.max(90, velocity - 35);
+        syncTelemetry();
+        msg.innerText = s.hint;
+        pod.style.display = 'flex';
       }
 
       setTimeout(() => {
-        copilotTerminal.style.display = 'none';
-        if (currentStage + 1 < checkpointMissions.length && lives > 0) {
-          currentStage++;
+        pod.style.display = 'none';
+        if (curStage + 1 < courseMissions.length && hull > 0) {
+          curStage++;
           gateDistance = 0;
-          isGateLocked = false;
-          updateHudData();
+          gateLock = false;
+          syncTelemetry();
         } else {
-          endMissionSession();
+          terminateCourse();
         }
-      }, isCorrect ? 700 : 2500);
+      }, isPass ? 700 : 2500);
     }
 
-    function endMissionSession() {
-      isRunning = false;
-      document.getElementById('screenEnd').style.display = 'flex';
+    function terminateCourse() {
+      active = false;
+      document.getElementById('endCurtain').style.display = 'flex';
       const pct = ((score / 12) * 100).toFixed(2);
       document.getElementById('finalScoreVal').innerText = `${score} / 12`;
       document.getElementById('finalPctVal').innerText = `ประสิทธิภาพ E1 = ${pct}%`;
     }
 
-    function bootArcadeEngine() {
-      SoundEngine.init();
-      document.getElementById('screenStart').style.display = 'none';
-      currentStage = 0;
+    function igniteEngine() {
+      SoundLab.init();
+      document.getElementById('startCurtain').style.display = 'none';
+      curStage = 0;
       score = 0;
-      lives = 3;
-      speed = 140;
+      hull = 3;
+      velocity = 145;
       gateDistance = 0;
-      playerX = 0;
-      isGateLocked = false;
-      isRunning = true;
-      updateHudData();
-      gameLoop();
-    }
-  </script>
-</body>
-</html>    }
-
-    .arcade-chassis {
-      position: relative;
-      width: 100vw;
-      max-width: 520px;
-      height: 100vh;
-      max-height: 900px;
-      background: #000;
-      border: 3px solid #1a273a;
-      box-shadow: 0 0 60px rgba(0, 242, 254, 0.25);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #gameCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    /* แดชบอร์ดด้านบนแบบยานแข่ง */
-    .cockpit-hud {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 10;
-      padding: 12px 14px;
-      background: linear-gradient(180deg, rgba(5, 8, 19, 0.95) 0%, rgba(5, 8, 19, 0) 100%);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: 'Orbitron', monospace;
-    }
-
-    .hud-gauge {
-      background: rgba(10, 20, 36, 0.85);
-      border: 1px solid rgba(0, 242, 254, 0.4);
-      padding: 4px 10px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      font-weight: 800;
-      letter-spacing: 1px;
-    }
-
-    .life-rack {
-      display: flex;
-      gap: 4px;
-    }
-    .life-bar {
-      width: 12px;
-      height: 14px;
-      background: var(--cyber-red);
-      border-radius: 2px;
-      box-shadow: 0 0 8px var(--cyber-red);
-      transition: opacity 0.2s;
-    }
-    .life-bar.lost {
-      background: #334155;
-      box-shadow: none;
-      opacity: 0.3;
-    }
-
-    /* ป้ายโจทย์ข้อสอบไฮเวย์ */
-    .telemetry-banner {
-      position: absolute;
-      top: 54px;
-      left: 10px;
-      right: 10px;
-      z-index: 10;
-      background: rgba(8, 16, 32, 0.92);
-      border: 2px solid var(--cyber-cyan);
-      border-radius: 12px;
-      padding: 10px 14px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.8);
-      backdrop-filter: blur(8px);
-    }
-
-    .banner-sub {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.75rem;
-      font-family: 'Orbitron', monospace;
-      color: var(--cyber-yellow);
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .banner-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-top: 4px;
-      line-height: 1.35;
-      color: #ffffff;
-    }
-
-    /* ปุ่มพวงมาลัยสัมผัสสำหรับมือถือ/iPad */
-    .touch-steering {
-      position: absolute;
-      bottom: 20px;
-      left: 0;
-      right: 0;
-      z-index: 15;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 24px;
-      pointer-events: none;
-    }
-
-    .steering-paddle {
-      pointer-events: auto;
-      width: 82px;
-      height: 82px;
-      background: radial-gradient(circle, rgba(0, 242, 254, 0.2) 0%, rgba(8, 16, 32, 0.9) 75%);
-      border: 2px solid var(--cyber-cyan);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 0 20px rgba(0, 242, 254, 0.35);
-      cursor: pointer;
-      transition: transform 0.08s;
-    }
-    .steering-paddle:active {
-      transform: scale(0.92);
-      background: rgba(0, 242, 254, 0.4);
-    }
-    .steering-paddle svg {
-      width: 36px;
-      height: 36px;
-      fill: #ffffff;
-    }
-
-    /* AI Copilot Terminal */
-    .copilot-terminal {
-      position: absolute;
-      bottom: 115px;
-      left: 12px;
-      right: 12px;
-      z-index: 12;
-      background: #08101e;
-      border: 1px solid var(--cyber-cyan);
-      border-left: 5px solid var(--cyber-cyan);
-      border-radius: 8px;
-      padding: 10px 14px;
-      display: none;
-      align-items: flex-start;
-      gap: 10px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-      animation: popIn 0.25s ease-out;
-    }
-    @keyframes popIn {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    /* หน้าจอเริ่ม & สรุปผล */
-    .curtain-screen {
-      position: absolute;
-      inset: 0;
-      z-index: 30;
-      background: rgba(4, 8, 16, 0.96);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      text-align: center;
-    }
-
-    .btn-warp {
-      background: linear-gradient(90deg, #10ac84, #1dd1a1);
-      border: none;
-      color: #fff;
-      padding: 16px 42px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      border-radius: 40px;
-      cursor: pointer;
-      box-shadow: 0 0 30px rgba(16, 172, 132, 0.5);
-      margin-top: 24px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .btn-warp:active {
-      transform: scale(0.95);
-    }
-  </style>
-</head>
-<body>
-
-  <div class="arcade-chassis">
-    <!-- แดชบอร์ดมาตรวัด -->
-    <div class="cockpit-hud">
-      <div class="hud-gauge" style="color: var(--cyber-cyan);">
-        <span>STAGE</span> <span id="hudStage">1/12</span>
-      </div>
-      <div class="hud-gauge" style="color: var(--cyber-yellow);">
-        <span id="hudSpeed">140</span> <span style="font-size: 0.65rem;">KM/H</span>
-      </div>
-      <div class="hud-gauge" style="color: #fff;">
-        <span style="font-size: 0.75rem; color: #94a3b8; margin-right: 4px;">SCORE</span>
-        <span id="hudScore">0</span>
-      </div>
-      <div class="hud-gauge">
-        <div class="life-rack" id="hudLives">
-          <div class="life-bar"></div>
-          <div class="life-bar"></div>
-          <div class="life-bar"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- แผงคำถามประจำด่าน -->
-    <div class="telemetry-banner" id="telemetryBanner">
-      <div class="banner-sub">
-        <span id="stageCategory">CHECKPOINT 1 // INTERFACE</span>
-        <span>DRIVE TO CORRECT GATE</span>
-      </div>
-      <div class="banner-title" id="stageQuestion">กำลังรับสัญญาณดาวเทียม...</div>
-    </div>
-
-    <!-- จอเรนเดอร์ถนนแบบ Pseudo-3D Engine -->
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- AI Copilot Radio -->
-    <div class="copilot-terminal" id="copilotTerminal">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--cyber-cyan)" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
-      <div>
-        <div style="font-weight: 700; color: var(--cyber-cyan); font-size: 0.85rem; font-family: 'Orbitron';">AI COPILOT RADIO</div>
-        <div id="aiHintLog" style="color: #cbd5e1; font-size: 0.9rem; margin-top: 2px;">คำแนะนำจราจร</div>
-      </div>
-    </div>
-
-    <!-- แป้นสัมผัสควบคุมทิศทาง -->
-    <div class="touch-steering">
-      <div class="steering-paddle" id="paddleLeft">
-        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-      </div>
-      <div class="steering-paddle" id="paddleRight">
-        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-      </div>
-    </div>
-
-    <!-- จอเริ่มต้น -->
-    <div class="curtain-screen" id="screenStart">
-      <div style="width: 60px; height: 60px; border: 2px solid var(--cyber-cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: 0 0 20px rgba(0,242,254,0.4);">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="var(--cyber-cyan)"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/><circle cx="7.5" cy="14.5" r="1.5"/><circle cx="16.5" cy="14.5" r="1.5"/></svg>
-      </div>
-      <h1 style="font-family: 'Orbitron'; font-size: 2.3rem; font-style: italic; text-shadow: 0 0 25px var(--cyber-cyan); color: #fff;">WORD ROAD</h1>
-      <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; max-width: 320px; margin-top: 6px;">
-        ขับรถลุย 12 Checkpoints ของ Microsoft Word ม.1<br>
-        <strong>"เลี้ยวรถพุ่งลอดเข้าซุ้มประตูคำตอบที่ถูกต้องเพื่อผ่านด่าน"</strong>
-      </p>
-      <div style="margin-top: 14px; font-size: 0.85rem; color: var(--cyber-yellow);">
-        ควบคุมด้วยปุ่มลูกศรบนหน้าจอ หรือกด A / D / แป้นลูกศร ซ้าย-ขวา
-      </div>
-      <button class="btn-warp" onclick="bootArcadeEngine()">
-        <span>START MISSION</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
-      </button>
-    </div>
-
-    <!-- จอสรุปผลหลังพิชิต 12 ด่าน -->
-    <div class="curtain-screen" id="screenEnd" style="display: none;">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="var(--cyber-green)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-      <h1 style="font-family: 'Orbitron'; font-size: 2rem; color: var(--cyber-green); text-shadow: 0 0 25px var(--cyber-green); margin-top: 8px;">COMPLETED</h1>
-      
-      <div style="background: rgba(14,26,47,0.9); border: 2px solid var(--cyber-yellow); border-radius: 14px; padding: 20px; width: 85%; margin: 16px 0;">
-        <div style="font-size: 0.8rem; color: var(--cyber-yellow); letter-spacing: 2px; font-family: 'Orbitron';">DRIVER LICENSE RECORD</div>
-        <div style="font-size: 2.8rem; font-weight: 900; color: #fff; margin: 4px 0;" id="finalScoreVal">12 / 12</div>
-        <div style="font-size: 0.95rem; color: var(--cyber-green); font-weight: 700;" id="finalPctVal">ประสิทธิภาพ E1 = 100%</div>
-      </div>
-
-      <p style="font-size: 0.9rem; color: #94a3b8; max-width: 320px;">
-        คุณได้รับสิทธิ์เข้าทำแบบทดสอบรวบยอด 20 ข้อใน <strong>Word Jump Game (E2)</strong>
-      </p>
-
-      <button class="btn-warp" onclick="alert('เตรียมเชื่อมต่อไปยังสนามทดสอบ Word Jump Game (E2)')">
-        <span>เข้าสู่สนามสอบ E2</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <script>
-    // ===============================================
-    // 1. SYNTHESIZED SFX & ENGINE SOUND GENERATOR
-    // ===============================================
-    const SoundEngine = {
-      ctx: null,
-      engineOsc: null,
-      engineGain: null,
-      init() {
-        if (!this.ctx) {
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-          this.startEngineLoop();
-        }
-      },
-      startEngineLoop() {
-        try {
-          this.engineOsc = this.ctx.createOscillator();
-          this.engineGain = this.ctx.createGain();
-          this.engineOsc.type = 'sawtooth';
-          this.engineOsc.frequency.setValueAtTime(45, this.ctx.currentTime);
-          this.engineGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
-          this.engineOsc.connect(this.engineGain);
-          this.engineGain.connect(this.ctx.destination);
-          this.engineOsc.start();
-        } catch(e) {}
-      },
-      setEnginePitch(speedRatio) {
-        if (this.engineOsc && this.ctx) {
-          this.engineOsc.frequency.setTargetAtTime(40 + speedRatio * 90, this.ctx.currentTime, 0.05);
-        }
-      },
-      beep(freq, dur, type = 'sine') {
-        try {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + dur);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + dur);
-        } catch(e) {}
-      },
-      steer() { this.beep(220, 0.06, 'triangle'); },
-      passGate() {
-        this.beep(523, 0.08, 'square');
-        setTimeout(() => this.beep(659, 0.08, 'square'), 70);
-        setTimeout(() => this.beep(880, 0.2, 'square'), 140);
-      },
-      crashGate() {
-        this.beep(160, 0.15, 'sawtooth');
-        setTimeout(() => this.beep(90, 0.35, 'sawtooth'), 120);
-      }
-    };
-
-    // ===============================================
-    // 2. DATA CHECKPOINTS (ครบ 12 ด่านเนื้อหา ม.1)
-    // ===============================================
-    const checkpointMissions = [
-      {
-        cp: 1,
-        cat: "CP 1 // แถบคำสั่ง",
-        q: "คำสั่งแทรกรูปภาพและตาราง อยู่ภายใต้เมนูแท็บใด?",
-        lanes: ["Home", "Insert", "Layout"],
-        correct: 1, // กลาง
-        hint: "แท็บ Insert (แทรก) คือหมวดหมู่ที่รวบรวมคำสั่งสำหรับเพิ่มองค์ประกอบภายนอก"
-      },
-      {
-        cp: 2,
-        cat: "CP 2 // การบันทึกแฟ้ม",
-        q: "ปุ่มคีย์ลัดสำหรับบันทึกงาน (Save) ทันทีคือข้อใด?",
-        lanes: ["Ctrl + C", "Ctrl + Z", "Ctrl + S"],
-        correct: 2, // ขวา
-        hint: "Ctrl + S เป็นคีย์ลัดสำหรับ Save ช่วยป้องกันข้อมูลสูญหาย"
-      },
-      {
-        cp: 3,
-        cat: "CP 3 // แบบอักษร",
-        q: "ต้องการทำตัวหนังสือให้เป็น 'ตัวหนา' ต้องเลือกไอคอนใด?",
-        lanes: ["ปุ่ม B", "ปุ่ม I", "ปุ่ม U"],
-        correct: 0, // ซ้าย
-        hint: "สัญลักษณ์ B ย่อมาจาก Bold หมายถึงตัวอักษรหนา"
-      },
-      {
-        cp: 4,
-        cat: "CP 4 // การเน้นข้อความ",
-        q: "คำสั่งขีดเส้นใต้ข้อความ (Underline) ตรงกับสัญลักษณ์ใด?",
-        lanes: ["ปุ่ม A", "ปุ่ม U", "ปุ่ม I"],
-        correct: 1,
-        hint: "ปุ่ม U ย่อมาจาก Underline ใช้สำหรับขีดเส้นใต้"
-      },
-      {
-        cp: 5,
-        cat: "CP 5 // การจัดย่อหน้า",
-        q: "จัดหัวข้อให้อยู่ 'กึ่งกลางหน้ากระดาษ' ใช้คำสั่งใด?",
-        lanes: ["Center", "Align Left", "Justify"],
-        correct: 0,
-        hint: "คำสั่ง Center (หรือ Ctrl + E) จัดตำแหน่งให้อยู่กึ่งกลางหน้ากระดาษพอดี"
-      },
-      {
-        cp: 6,
-        cat: "CP 6 // ลำดับหัวข้อ",
-        q: "ต้องการทำขั้นตอน 1, 2, 3 เรียงลำดับ ควรเลือกใช้เครื่องมือใด?",
-        lanes: ["Bullets", "Shapes", "Numbering"],
-        correct: 2,
-        hint: "เมื่อมีลำดับขั้นตอนก่อนหลังชัดเจน ควรเลือกใช้ Numbering"
-      },
-      {
-        cp: 7,
-        cat: "CP 7 // การจัดการรูปภาพ",
-        q: "ต้องการคลิกลากย้ายรูปภาพได้อย่างอิสระ ต้องปรับคำสั่งใด?",
-        lanes: ["Crop", "Wrap Text", "Effects"],
-        correct: 1,
-        hint: "คำสั่ง Wrap Text (ตัดข้อความ) ปรับให้ภาพลอยตัวเพื่อย้ายตำแหน่งได้อิสระ"
-      },
-      {
-        cp: 8,
-        cat: "CP 8 // ตารางเอกสาร",
-        q: "ต้องการรวมช่องตาราง 2 ช่องเข้าด้วยกันเป็นช่องเดียว ใช้คำสั่งใด?",
-        lanes: ["Merge Cells", "Split Cells", "Insert Row"],
-        correct: 0,
-        hint: "Merge Cells ทำหน้าที่ผสานเซลล์ตารางที่เลือกเข้าด้วยกัน"
-      },
-      {
-        cp: 9,
-        cat: "CP 9 // ตั้งค่าหน้ากระดาษ",
-        q: "เปลี่ยนกระดาษเป็นแนวนอน (Landscape) ต้องเลือกคำสั่งใด?",
-        lanes: ["Size", "Margins", "Orientation"],
-        correct: 2,
-        hint: "Orientation ในแท็บ Layout ใช้ปรับเปลี่ยนแนวกระดาษเป็นแนวตั้งหรือแนวนอน"
-      },
-      {
-        cp: 10,
-        cat: "CP 10 // ตรวจสอบเอกสาร",
-        q: "เส้นใต้หยัก 'สีแดง' ใต้คำที่พิมพ์ หมายถึงสิ่งใด?",
-        lanes: ["สะกดคำผิด", "เว้นวรรคผิด", "ฟอนต์เพี้ยน"],
-        correct: 0,
-        hint: "เส้นหยักสีแดงบ่งบอกว่าระบบตรวจพบคำสะกดไม่ถูกต้องตามพจนานุกรม"
-      },
-      {
-        cp: 11,
-        cat: "CP 11 // การพิมพ์งาน",
-        q: "ปุ่มคีย์ลัดสำหรับเปิดหน้าต่างสั่งพิมพ์งาน (Print) คือข้อใด?",
-        lanes: ["Ctrl + N", "Ctrl + P", "Ctrl + O"],
-        correct: 1,
-        hint: "Ctrl + P ใช้สำหรับเปิดเมนู Print สั่งพิมพ์งานออกเครื่องพิมพ์"
-      },
-      {
-        cp: 12,
-        cat: "CP 12 // ส่งออกเอกสาร",
-        q: "บันทึกรายงานเป็นไฟล์นามสกุลใด เพื่อล็อกการจัดหน้าไม่ให้เลื่อนหลุด?",
-        lanes: [".docx", ".txt", ".pdf"],
-        correct: 2,
-        hint: "ไฟล์ .pdf เป็นมาตรฐานเอกสารคงรูปที่การจัดหน้าจะไม่เลื่อนเมื่อเปิดต่างเครื่อง"
-      }
-    ];
-
-    // ===============================================
-    // 3. PSEUDO-3D OVERDRIVE ENGINE (CANVAS 60FPS)
-    // ===============================================
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    let currentStage = 0;
-    let score = 0;
-    let lives = 3;
-    let isRunning = false;
-    let isGateLocked = false;
-
-    // ระบบฟิสิกส์การขับขี่
-    let playerX = 0;       // -1.0 (ซ้ายสุด) ถึง +1.0 (ขวาสุด)
-    let steerVelocity = 0; // ความเร็วการหมุนพวงมาลัย
-    let speed = 140;       // km/h
-    let gateDistance = 0;  // 0 = ไกลสุด, 1.0 = ถึงตัวรถ
-    let roadCurve = 0;     // ความโค้งของถนน
-    let targetCurve = 0.4;
-    let roadZOffset = 0;
-
-    function resizeChassis() {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
-    }
-    window.addEventListener('resize', resizeChassis);
-    resizeChassis();
-
-    function updateHudData() {
-      const s = checkpointMissions[currentStage];
-      document.getElementById('hudStage').innerText = `${s.cp}/12`;
-      document.getElementById('hudScore').innerText = score;
-      document.getElementById('hudSpeed').innerText = Math.round(speed);
-      document.getElementById('stageCategory').innerText = s.cat;
-      document.getElementById('stageQuestion').innerText = s.q;
-
-      const bars = document.querySelectorAll('.life-bar');
-      bars.forEach((b, idx) => {
-        if (idx < lives) b.classList.remove('lost');
-        else b.classList.add('lost');
-      });
-    }
-
-    // ระบบบังคับเลี้ยว
-    let steerLeft = false;
-    let steerRight = false;
-
-    function bindControls() {
-      const pL = document.getElementById('paddleLeft');
-      const pR = document.getElementById('paddleRight');
-
-      pL.addEventListener('pointerdown', (e) => { e.preventDefault(); steerLeft = true; SoundEngine.steer(); });
-      pL.addEventListener('pointerup', () => steerLeft = false);
-      pL.addEventListener('pointerleave', () => steerLeft = false);
-
-      pR.addEventListener('pointerdown', (e) => { e.preventDefault(); steerRight = true; SoundEngine.steer(); });
-      pR.addEventListener('pointerup', () => steerRight = false);
-      pR.addEventListener('pointerleave', () => steerRight = false);
-
-      window.addEventListener('keydown', (e) => {
-        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { steerLeft = true; SoundEngine.steer(); }
-        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { steerRight = true; SoundEngine.steer(); }
-      });
-      window.addEventListener('keyup', (e) => {
-        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") steerLeft = false;
-        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") steerRight = false;
-      });
-    }
-    bindControls();
-
-    // ===============================================
-    // 4. MAIN RENDERING PIPELINE
-    // ===============================================
-    function gameLoop() {
-      if (!isRunning) return;
-
-      const w = canvas.width;
-      const h = canvas.height;
-      const horizon = h * 0.48;
-
-      ctx.clearRect(0, 0, w, h);
-
-      // ฟิสิกส์การเลี้ยวและโค้งถนน
-      if (steerLeft) steerVelocity -= 0.0035;
-      if (steerRight) steerVelocity += 0.0035;
-      steerVelocity *= 0.88; // แรงต้าน
-      playerX += steerVelocity;
-      playerX = Math.max(-0.95, Math.min(0.95, playerX));
-
-      // ถนนค่อยๆ โค้งไปมาตามธรรมชาติ
-      roadCurve += (targetCurve - roadCurve) * 0.02;
-      if (Math.random() < 0.01) targetCurve = (Math.random() - 0.5) * 1.2;
-
-      // 1. เรนเดอร์ท้องฟ้า Cyberpunk Overdrive
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, horizon);
-      skyGrad.addColorStop(0, '#030712');
-      skyGrad.addColorStop(0.7, '#07162c');
-      skyGrad.addColorStop(1, '#00f2fe');
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, w, horizon);
-
-      // 2. เรนเดอร์ไหล่ทางและถนนแบบสแกนบรรทัด Pseudo-3D
-      roadZOffset = (roadZOffset + speed * 0.001) % 1;
-      const lines = 70;
-
-      for (let i = lines; i > 0; i--) {
-        const p = i / lines;
-        const nextP = (i - 1) / lines;
-        const y1 = horizon + (h - horizon) * Math.pow(nextP, 2.2);
-        const y2 = horizon + (h - horizon) * Math.pow(p, 2.2);
-        const bandHeight = y2 - y1;
-
-        if (bandHeight <= 0) continue;
-
-        const curveShift1 = Math.pow(nextP, 2) * roadCurve * (w * 0.35);
-        const curveShift2 = Math.pow(p, 2) * roadCurve * (w * 0.35);
-
-        const roadW1 = (w * 0.22) + (w * 0.82) * Math.pow(nextP, 2.2);
-        const roadW2 = (w * 0.22) + (w * 0.82) * Math.pow(p, 2.2);
-
-        const cX1 = (w * 0.5) + curveShift1 - (playerX * w * 0.25 * nextP);
-        const cX2 = (w * 0.5) + curveShift2 - (playerX * w * 0.25 * p);
-
-        // สีแถบสลับสร้างมิติความเร็ว (Rumble Strip)
-        const isStripe = ((i + Math.floor(roadZOffset * 10)) % 2 === 0);
-
-        // ไหล่ทางหญ้า
-        ctx.fillStyle = isStripe ? '#08111d' : '#050a12';
-        ctx.fillRect(0, y1, w, bandHeight);
-
-        // ขอบทางนีออน (Kerb)
-        const kerbW1 = roadW1 * 1.15;
-        const kerbW2 = roadW2 * 1.15;
-        ctx.fillStyle = isStripe ? '#f368e0' : '#1e293b';
-        drawTrapezoid(cX1, y1, kerbW1, cX2, y2, kerbW2);
-
-        // ผิวถนนลาดยาง
-        ctx.fillStyle = isStripe ? '#141e2e' : '#101926';
-        drawTrapezoid(cX1, y1, roadW1, cX2, y2, roadW2);
-
-        // เส้นแบ่ง 3 เลน
-        if (isStripe) {
-          ctx.fillStyle = '#ff9f43';
-          const lineW1 = Math.max(1, roadW1 * 0.015);
-          const lineW2 = Math.max(1, roadW2 * 0.015);
-          // เลนซ้าย-กลาง
-          drawTrapezoid(cX1 - roadW1 * 0.33, y1, lineW1, cX2 - roadW2 * 0.33, y2, lineW2);
-          // เลนกลาง-ขวา
-          drawTrapezoid(cX1 + roadW1 * 0.33, y1, lineW1, cX2 + roadW2 * 0.33, y2, lineW2);
-        }
-      }
-
-      // 3. เรนเดอร์ซุ้มประตูทางหลวง (Highway Gates) 3 ช่อง
-      gateDistance += (speed * 0.00008);
-      const stageData = checkpointMissions[currentStage];
-      const gateScale = Math.pow(gateDistance, 2.5);
-
-      if (gateDistance > 0.15 && gateDistance < 0.98) {
-        const gateY = horizon + (h - horizon) * gateScale;
-        const gateRoadW = (w * 0.22) + (w * 0.82) * gateScale;
-        const gateCX = (w * 0.5) + (Math.pow(gateDistance, 2) * roadCurve * (w * 0.35)) - (playerX * w * 0.25 * gateDistance);
-
-        const laneWidth = gateRoadW / 3;
-        const startX = gateCX - gateRoadW * 0.5;
-
-        // วาดเสาและคานประตูซุ้มทางหลวง
-        ctx.strokeStyle = '#00f2fe';
-        ctx.lineWidth = Math.max(2, 6 * gateScale);
-        ctx.strokeRect(startX, gateY - 70 * gateScale, gateRoadW, 70 * gateScale);
-
-        // วาดป้ายคำตอบประจำแต่ละช่องเลน
-        stageData.lanes.forEach((txt, idx) => {
-          const boxX = startX + laneWidth * idx + laneWidth * 0.05;
-          const boxW = laneWidth * 0.9;
-          const boxH = Math.max(18, 55 * gateScale);
-          const boxY = gateY - boxH - (10 * gateScale);
-
-          // กล่องป้าย
-          ctx.fillStyle = (idx === stageData.correct) ? 'rgba(16, 172, 132, 0.92)' : 'rgba(15, 23, 42, 0.92)';
-          ctx.strokeStyle = '#00f2fe';
-          ctx.lineWidth = Math.max(1, 3 * gateScale);
-          ctx.beginPath();
-          ctx.roundRect(boxX, boxY, boxW, boxH, 6 * gateScale);
-          ctx.fill();
-          ctx.stroke();
-
-          // ข้อความตัวเลือก
-          ctx.fillStyle = '#ffffff';
-          ctx.font = `bold ${Math.max(10, 16 * gateScale)}px Kanit`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(txt, boxX + boxW * 0.5, boxY + boxH * 0.5);
-        });
-      }
-
-      // ตรวจสอบการขับมุดลอดซุ้มเมื่อมาถึงตัวรถ
-      if (gateDistance >= 0.88 && !isGateLocked) {
-        evaluateGateCollision();
-      }
-
-      // 4. เรนเดอร์ตัวรถแข่งสปอร์ต GT (ขับเคลื่อนสมจริง)
-      drawProSportCar(w * 0.5, h - 85, steerVelocity);
-
-      // อัปเดตเสียงรอบเครื่องยนต์
-      SoundEngine.setEnginePitch(speed / 200);
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    function drawTrapezoid(x1, y1, w1, x2, y2, w2) {
-      ctx.beginPath();
-      ctx.moveTo(x1 - w1 * 0.5, y1);
-      ctx.lineTo(x1 + w1 * 0.5, y1);
-      ctx.lineTo(x2 + w2 * 0.5, y2);
-      ctx.lineTo(x2 - w2 * 0.5, y2);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    // วาดรถสปอร์ต GT เวกเตอร์แท้
-    function drawProSportCar(x, y, steer) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(steer * 2.2); // เอียงตัวถังตามแรงเหวี่ยง
-
-      // เงารถตกกระทบพื้น
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-      ctx.beginPath();
-      ctx.ellipse(0, 18, 38, 12, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // ไฟไอพ่นไนตรัสท้ายรถ
-      ctx.fillStyle = '#00f2fe';
-      ctx.fillRect(-18, 20, 7, 8 + Math.random() * 10);
-      ctx.fillRect(11, 20, 7, 8 + Math.random() * 10);
-
-      // ล้อหลังกว้างแบบรถแข่ง
-      ctx.fillStyle = '#080d14';
-      ctx.fillRect(-34, 0, 8, 18);
-      ctx.fillRect(26, 0, 8, 18);
-
-      // ตัวถังรถสปอร์ต (แดงส้ม Overdrive)
-      ctx.fillStyle = '#ee5253';
-      ctx.beginPath();
-      ctx.roundRect(-26, -26, 52, 46, 8);
-      ctx.fill();
-
-      // เส้นสาย Aerodynamic
-      ctx.fillStyle = '#c0392b';
-      ctx.beginPath();
-      ctx.moveTo(-16, -26);
-      ctx.lineTo(-24, 18);
-      ctx.lineTo(-18, 18);
-      ctx.lineTo(-10, -26);
-      ctx.fill();
-
-      // ห้องคนขับและกระจกกันลมสะท้อนแสง
-      ctx.fillStyle = '#0a1728';
-      ctx.beginPath();
-      ctx.roundRect(-16, -18, 32, 20, 5);
-      ctx.fill();
-
-      ctx.fillStyle = 'rgba(0, 242, 254, 0.4)';
-      ctx.fillRect(-12, -15, 24, 6);
-
-      // ไฟท้าย LED Bar สว่างวาบ
-      ctx.fillStyle = '#ff9f43';
-      ctx.fillRect(-22, 16, 44, 4);
-
-      // ปีกสปอยเลอร์หลัง GT
-      ctx.fillStyle = '#1e272e';
-      ctx.fillRect(-30, 14, 60, 5);
-
-      ctx.restore();
-    }
-
-    // ===============================================
-    // 5. EVALUATION & CHECKPOINT LOGIC
-    // ===============================================
-    function evaluateGateCollision() {
-      isGateLocked = true;
-      const s = checkpointMissions[currentStage];
-
-      // คำนวณว่าตัวรถอยู่เลนใดจากพิกัด playerX (-1 ถึง 1)
-      // ซ้าย: playerX < -0.33, กลาง: -0.33 ถึง 0.33, ขวา: > 0.33
-      let chosenLane = 1;
-      if (playerX < -0.33) chosenLane = 0;
-      else if (playerX > 0.33) chosenLane = 2;
-
-      const isCorrect = (chosenLane === s.correct);
-      const copilotTerminal = document.getElementById('copilotTerminal');
-      const aiHintLog = document.getElementById('aiHintLog');
-
-      if (isCorrect) {
-        SoundEngine.passGate();
-        score++;
-        speed = Math.min(220, speed + 15); // เร่งความเร็วขึ้นเมื่อตอบถูก
-        updateHudData();
-      } else {
-        SoundEngine.crashGate();
-        lives = Math.max(0, lives - 1);
-        speed = Math.max(90, speed - 35); // ความเร็วตกเมื่อชนป้ายผิด
-        updateHudData();
-
-        aiHintLog.innerText = s.hint;
-        copilotTerminal.style.display = 'flex';
-      }
-
-      setTimeout(() => {
-        copilotTerminal.style.display = 'none';
-        if (currentStage + 1 < checkpointMissions.length && lives > 0) {
-          currentStage++;
-          gateDistance = 0;
-          isGateLocked = false;
-          updateHudData();
-        } else {
-          endMissionSession();
-        }
-      }, isCorrect ? 700 : 2500);
-    }
-
-    function endMissionSession() {
-      isRunning = false;
-      document.getElementById('screenEnd').style.display = 'flex';
-      const pct = ((score / 12) * 100).toFixed(2);
-      document.getElementById('finalScoreVal').innerText = `${score} / 12`;
-      document.getElementById('finalPctVal').innerText = `ประสิทธิภาพ E1 = ${pct}%`;
-    }
-
-    function bootArcadeEngine() {
-      SoundEngine.init();
-      document.getElementById('screenStart').style.display = 'none';
-      currentStage = 0;
-      score = 0;
-      lives = 3;
-      speed = 140;
-      gateDistance = 0;
-      playerX = 0;
-      isGateLocked = false;
-      isRunning = true;
-      updateHudData();
-      gameLoop();
-    }
-  </script>
-</body>
-</html>
-    .arcade-machine {
-      position: relative;
-      width: 100%;
-      max-width: 500px;
-      height: 100vh;
-      max-height: 880px;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      border: 3px solid #142236;
-      box-shadow: 0 0 60px rgba(0, 242, 254, 0.15);
-      overflow: hidden;
-    }
-
-    /* HUD ด้านบน */
-    .arcade-hud {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 10;
-      padding: 10px 14px;
-      background: linear-gradient(180deg, rgba(8, 15, 29, 0.95) 0%, rgba(8, 15, 29, 0) 100%);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: 'Chakra Petch', sans-serif;
-    }
-
-    .hud-badge {
-      background: rgba(14, 26, 47, 0.85);
-      border: 1px solid rgba(0, 242, 254, 0.35);
-      padding: 4px 10px;
-      border-radius: 16px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .hp-gauge {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-
-    .hp-cell {
-      width: 14px;
-      height: 14px;
-      background: var(--neon-red);
-      border-radius: 3px;
-      box-shadow: 0 0 8px var(--neon-red);
-      transition: all 0.2s;
-    }
-    .hp-cell.depleted {
-      background: #2c3e50;
-      box-shadow: none;
-      opacity: 0.4;
-    }
-
-    /* ป้ายบอกภารกิจ */
-    .checkpoint-board {
-      position: absolute;
-      top: 52px;
-      left: 12px;
-      right: 12px;
-      z-index: 10;
-      background: rgba(8, 15, 29, 0.92);
-      border: 2px solid var(--neon-cyan);
-      border-radius: 12px;
-      padding: 10px 14px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.7);
-      backdrop-filter: blur(6px);
-    }
-
-    .board-header {
-      font-family: 'Chakra Petch', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--neon-amber);
-      display: flex;
-      justify-content: space-between;
-      letter-spacing: 0.5px;
-    }
-
-    .board-question {
-      font-size: 1rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin-top: 4px;
-      line-height: 1.35;
-    }
-
-    #gameCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    /* ปุ่มควบคุมจอสัมผัส */
-    .touch-deck {
-      position: absolute;
-      bottom: 22px;
-      left: 0;
-      right: 0;
-      z-index: 12;
-      display: flex;
-      justify-content: space-between;
-      padding: 0 24px;
-      pointer-events: none;
-    }
-
-    .control-pad {
-      pointer-events: auto;
-      width: 76px;
-      height: 76px;
-      background: radial-gradient(circle, rgba(0, 242, 254, 0.25) 0%, rgba(10, 18, 32, 0.8) 80%);
-      border: 2px solid var(--neon-cyan);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 0 16px rgba(0, 242, 254, 0.35);
-      cursor: pointer;
-      transition: transform 0.08s;
-    }
-
-    .control-pad:active {
-      transform: scale(0.92);
-      background: rgba(0, 242, 254, 0.5);
-    }
-
-    .control-pad svg {
-      width: 32px;
-      height: 32px;
-      fill: #ffffff;
-    }
-
-    /* กล่องเสียงวิทยุสื่อสาร AI */
-    .ai-comm-module {
-      position: absolute;
-      bottom: 110px;
-      left: 14px;
-      right: 14px;
-      z-index: 15;
-      background: #08101e;
-      border: 1px solid var(--neon-cyan);
-      border-left: 5px solid var(--neon-cyan);
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: none;
-      align-items: flex-start;
-      gap: 10px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-      animation: popIn 0.25s ease-out;
-    }
-    @keyframes popIn {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    /* จอสรุปคะแนนและเริ่มต้น */
-    .display-curtain {
-      position: absolute;
-      inset: 0;
-      z-index: 20;
-      background: rgba(4, 8, 16, 0.96);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 24px;
-      text-align: center;
-    }
-
-    .title-banner {
-      font-family: 'Chakra Petch', sans-serif;
-      font-size: 2.2rem;
-      font-style: italic;
-      font-weight: 700;
-      color: #fff;
-      text-shadow: 0 0 25px var(--neon-cyan);
-      margin-bottom: 8px;
-    }
-
-    .btn-launch {
-      background: linear-gradient(90deg, #05c46b, #0be881);
-      border: none;
-      color: #fff;
-      padding: 15px 38px;
-      font-size: 1.15rem;
-      font-weight: 700;
-      border-radius: 40px;
-      cursor: pointer;
-      box-shadow: 0 0 25px rgba(5, 196, 107, 0.5);
-      margin-top: 20px;
-      font-family: 'Kanit', sans-serif;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .btn-launch:active {
-      transform: scale(0.95);
-    }
-  </style>
-</head>
-<body>
-
-  <div class="arcade-machine">
-
-    <!-- HUD -->
-    <div class="arcade-hud">
-      <div class="hud-badge" style="color: var(--neon-cyan);">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-        <span>STAGE</span> <span id="hudStage">1/12</span>
-      </div>
-      <div class="hud-badge" style="color: var(--neon-amber);">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-        <span>SCORE</span> <span id="hudScore">0</span>
-      </div>
-      <div class="hud-badge">
-        <span style="font-size: 0.75rem; margin-right: 4px; color: #94a3b8;">HULL</span>
-        <div class="hp-gauge" id="hudHpGauge">
-          <div class="hp-cell"></div>
-          <div class="hp-cell"></div>
-          <div class="hp-cell"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- แถบคำถามด่านตรวจ -->
-    <div class="checkpoint-board" id="missionBanner">
-      <div class="board-header">
-        <span id="bannerCategory">CHECKPOINT 1 // INTERFACE</span>
-        <span>SELECT LANE</span>
-      </div>
-      <div class="board-question" id="bannerQuestion">
-        กำลังเชื่อมต่อสถานีดาวเทียม...
-      </div>
-    </div>
-
-    <!-- Canvas แสดงภาพถนนและรถ -->
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- กล่อง AI แจ้งเตือนข้อคิดเห็น -->
-    <div class="ai-comm-module" id="aiCard">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8.01" y2="16"/><line x1="16" y1="16" x2="16.01" y2="16"/></svg>
-      <div>
-        <div style="font-weight: 700; color: var(--neon-cyan); font-size: 0.85rem;">AI COPILOT RADIO</div>
-        <div id="aiMessage" style="color: #cbd5e1; font-size: 0.9rem; margin-top: 2px;">คำแนะนำจราจร</div>
-      </div>
-    </div>
-
-    <!-- ปุ่มควบคุมเสมือนบนจอ (Touch Pads) -->
-    <div class="touch-deck">
-      <div class="control-pad" id="leftBtn">
-        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-      </div>
-      <div class="control-pad" id="rightBtn">
-        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-      </div>
-    </div>
-
-    <!-- จอเริ่มต้น -->
-    <div class="display-curtain" id="startScreen">
-      <div style="width: 56px; height: 56px; border: 2px solid var(--neon-cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="var(--neon-cyan)"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/><circle cx="7.5" cy="14.5" r="1.5"/><circle cx="16.5" cy="14.5" r="1.5"/></svg>
-      </div>
-      <h1 class="title-banner">WORD ROAD</h1>
-      <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6; max-width: 320px;">
-        ภารกิจขับรถผ่าน 12 Checkpoints ของ Microsoft Word ม.1<br>
-        <strong>"เลี้ยวรถพุ่งเข้าเลนป้ายคำตอบที่ถูกต้องเพื่อผ่านด่าน"</strong>
-      </p>
-      <div style="margin-top: 14px; font-size: 0.85rem; color: var(--neon-amber);">
-        สัมผัสปุ่มลูกศรบนหน้าจอ หรือกดแป้นลูกศร ซ้าย-ขวา บนคีย์บอร์ด
-      </div>
-      <button class="btn-launch" onclick="launchGame()">
-        <span>START MISSION</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
-      </button>
-    </div>
-
-    <!-- จอแสดงผลใบรับรองดิจิทัล -->
-    <div class="display-curtain" id="endScreen" style="display: none;">
-      <svg width="50" height="50" viewBox="0 0 24 24" fill="var(--neon-green)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-      <h1 class="title-banner" style="color: var(--neon-green); text-shadow: 0 0 20px var(--neon-green); margin-top: 6px;">COMPLETED</h1>
-      
-      <div style="background: rgba(14,26,47,0.9); border: 2px solid var(--neon-amber); border-radius: 14px; padding: 20px; width: 85%; margin: 16px 0;">
-        <div style="font-size: 0.8rem; color: var(--neon-amber); letter-spacing: 1px;">DRIVER LICENSE RECORD</div>
-        <div style="font-size: 2.6rem; font-weight: 700; color: #fff; margin: 4px 0;" id="finalScoreText">12 / 12</div>
-        <div style="font-size: 0.95rem; color: var(--neon-green);" id="finalPctText">ประสิทธิภาพ E1 = 100%</div>
-      </div>
-
-      <button class="btn-launch" onclick="alert('ส่งข้อมูลคะแนนเข้าสู่ระบบประเมิน Word Jump Game (E2)')">
-        <span>เข้าสู่สนามสอบ E2</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
-      </button>
-    </div>
-
-  </div>
-
-  <script>
-    // ==========================================
-    // 1. WEB AUDIO SYNTHESIZER
-    // ==========================================
-    const Sfx = {
-      ctx: null,
-      init() {
-        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      },
-      pulse(freq, dur, type = 'sine') {
-        try {
-          this.init();
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + dur);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + dur);
-        } catch(e) {}
-      },
-      steer() { this.pulse(300, 0.05, 'triangle'); },
-      pass() {
-        this.pulse(523, 0.08, 'square');
-        setTimeout(() => this.pulse(659, 0.08, 'square'), 80);
-        setTimeout(() => this.pulse(784, 0.18, 'square'), 160);
-      },
-      crash() {
-        this.pulse(180, 0.15, 'sawtooth');
-        setTimeout(() => this.pulse(110, 0.3, 'sawtooth'), 100);
-      }
-    };
-
-    // ==========================================
-    // 2. DATA CHECKPOINTS 12 ข้อ
-    // ==========================================
-    const missions = [
-      {
-        cp: 1,
-        cat: "CHECKPOINT 1 // แถบเครื่องมือ",
-        q: "คำสั่งแทรกรูปภาพและตาราง อยู่ภายใต้เมนูแท็บใด?",
-        lanes: ["Home", "Insert", "Layout"],
-        correct: 1,
-        hint: "แท็บ Insert (แทรก) คือหมวดหมู่ที่รวบรวมคำสั่งสำหรับเพิ่มองค์ประกอบภายนอก"
-      },
-      {
-        cp: 2,
-        cat: "CHECKPOINT 2 // การบันทึกแฟ้ม",
-        q: "ปุ่มคีย์ลัดสำหรับบันทึกงาน (Save) ทันทีคือปุ่มใด?",
-        lanes: ["Ctrl + C", "Ctrl + Z", "Ctrl + S"],
-        correct: 2,
-        hint: "Ctrl + S เป็นคีย์ลัดสำหรับคำสั่ง Save"
-      },
-      {
-        cp: 3,
-        cat: "CHECKPOINT 3 // แบบอักษร",
-        q: "ต้องการทำตัวหนังสือให้เป็น 'ตัวหนา' ต้องใช้สัญลักษณ์ใด?",
-        lanes: ["ปุ่ม B", "ปุ่ม I", "ปุ่ม U"],
-        correct: 0,
-        hint: "สัญลักษณ์ B ย่อมาจาก Bold หมายถึงตัวหนา"
-      },
-      {
-        cp: 4,
-        cat: "CHECKPOINT 4 // การเน้นข้อความ",
-        q: "คำสั่งขีดเส้นใต้ข้อความ (Underline) ตรงกับไอคอนใด?",
-        lanes: ["ปุ่ม A", "ปุ่ม U", "ปุ่ม I"],
-        correct: 1,
-        hint: "ปุ่ม U ย่อมาจาก Underline ใช้ขีดเส้นใต้"
-      },
-      {
-        cp: 5,
-        cat: "CHECKPOINT 5 // การจัดย่อหน้า",
-        q: "จัดหัวข้อให้อยู่ 'กึ่งกลางหน้ากระดาษ' ใช้คำสั่งใด?",
-        lanes: ["Center", "Align Left", "Justify"],
-        correct: 0,
-        hint: "คำสั่ง Center (หรือ Ctrl + E) จัดตำแหน่งให้อยู่กึ่งกลางพอดี"
-      },
-      {
-        cp: 6,
-        cat: "CHECKPOINT 6 // ลำดับหัวข้อ",
-        q: "ต้องการทำขั้นตอน 1, 2, 3 เรียงลำดับ ต้องเลือกใช้เครื่องมือใด?",
-        lanes: ["Bullets", "Shapes", "Numbering"],
-        correct: 2,
-        hint: "เมื่อมีลำดับชัดเจนควรเลือกใช้ Numbering"
-      },
-      {
-        cp: 7,
-        cat: "CHECKPOINT 7 // การจัดการรูปภาพ",
-        q: "หากต้องการคลิกลากย้ายรูปภาพได้อย่างอิสระ ต้องตั้งค่าคำสั่งใด?",
-        lanes: ["Crop", "Wrap Text", "Effects"],
-        correct: 1,
-        hint: "Wrap Text (ตัดข้อความ) ปรับให้ภาพลอยตัวเพื่อลากย้ายได้สะดวก"
-      },
-      {
-        cp: 8,
-        cat: "CHECKPOINT 8 // ตารางเอกสาร",
-        q: "ต้องการรวมช่องตาราง 2 ช่องเข้าด้วยกันเป็นช่องเดียว ใช้คำสั่งใด?",
-        lanes: ["Merge Cells", "Split Cells", "Insert Row"],
-        correct: 0,
-        hint: "Merge Cells ทำหน้าที่ผสานเซลล์ตารางที่ไฮไลต์เข้าด้วยกัน"
-      },
-      {
-        cp: 9,
-        cat: "CHECKPOINT 9 // ตั้งค่าหน้ากระดาษ",
-        q: "เปลี่ยนกระดาษแนวตั้งเป็นแนวนอน (Landscape) ต้องเลือกคำสั่งใด?",
-        lanes: ["Size", "Margins", "Orientation"],
-        correct: 2,
-        hint: "Orientation ในแท็บ Layout ใช้ปรับเปลี่ยนแนวกระดาษ"
-      },
-      {
-        cp: 10,
-        cat: "CHECKPOINT 10 // ตรวจสอบเอกสาร",
-        q: "เส้นใต้หยัก 'สีแดง' ใต้คำที่พิมพ์ หมายถึงสิ่งใด?",
-        lanes: ["สะกดคำผิด", "เว้นวรรคผิด", "ฟอนต์เพี้ยน"],
-        correct: 0,
-        hint: "เส้นหยักสีแดงบ่งบอกว่าโปรแกรมตรวจพบคำสะกดไม่ถูกต้อง"
-      },
-      {
-        cp: 11,
-        cat: "CHECKPOINT 11 // การพิมพ์งาน",
-        q: "ปุ่มคีย์ลัดสำหรับเปิดหน้าต่างสั่งพิมพ์งาน (Print) คือข้อใด?",
-        lanes: ["Ctrl + N", "Ctrl + P", "Ctrl + O"],
-        correct: 1,
-        hint: "Ctrl + P ใช้สำหรับเปิดเมนู Print สั่งพิมพ์งาน"
-      },
-      {
-        cp: 12,
-        cat: "CHECKPOINT 12 // ส่งออกเอกสาร",
-        q: "บันทึกรายงานเป็นไฟล์นามสกุลใด เพื่อล็อกหน้าและฟอนต์ไม่ให้เคลื่อน?",
-        lanes: [".docx", ".txt", ".pdf"],
-        correct: 2,
-        hint: "ไฟล์ .pdf เป็นมาตรฐานเอกสารคงรูปที่การจัดหน้าจะไม่เลื่อนหลุด"
-      }
-    ];
-
-    // ==========================================
-    // 3. CANVAS PROCEDURAL GAME ENGINE
-    // ==========================================
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-
-    let currentStage = 0;
-    let score = 0;
-    let lives = 3;
-    let isGameOver = false;
-    let isLocked = false;
-
-    let targetLane = 1; // 0=ซ้าย, 1=กลาง, 2=ขวา
-    let currentCarX = 1; // Smooth Lerp
-    let gateDepth = 0;   // 0=ไกล, 1=ถึงตัวรถ
-    let roadStripeOffset = 0;
-
-    function resize() {
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    function updateHud() {
-      const s = missions[currentStage];
-      document.getElementById('hudStage').innerText = `${s.cp}/12`;
-      document.getElementById('hudScore').innerText = score;
-      document.getElementById('bannerCategory').innerText = s.cat;
-      document.getElementById('bannerQuestion').innerText = s.q;
-
-      // ปรับเกจหลอดเลือด HULL
-      const cells = document.querySelectorAll('.hp-cell');
-      cells.forEach((cell, idx) => {
-        if (idx < lives) cell.classList.remove('depleted');
-        else cell.classList.add('depleted');
-      });
-    }
-
-    function steerLeft() {
-      if (isLocked || targetLane <= 0) return;
-      targetLane--;
-      Sfx.steer();
-    }
-
-    function steerRight() {
-      if (isLocked || targetLane >= 2) return;
-      targetLane++;
-      Sfx.steer();
-    }
-
-    document.getElementById('leftBtn').addEventListener('pointerdown', (e) => { e.preventDefault(); steerLeft(); });
-    document.getElementById('rightBtn').addEventListener('pointerdown', (e) => { e.preventDefault(); steerRight(); });
-
-    window.addEventListener('keydown', (e) => {
-      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") steerLeft();
-      if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") steerRight();
-    });
-
-    // ==========================================
-    // 4. PROCEDURAL RENDERING LOOP
-    // ==========================================
-    function renderLoop() {
-      if (isGameOver) return;
-
-      const w = canvas.width;
-      const h = canvas.height;
-
-      ctx.clearRect(0, 0, w, h);
-
-      // ท้องฟ้าแนว Cyber-Arcade
-      const sky = ctx.createLinearGradient(0, 0, 0, h * 0.48);
-      sky.addColorStop(0, '#020610');
-      sky.addColorStop(0.8, '#081730');
-      sky.addColorStop(1, '#00f2fe');
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, w, h * 0.48);
-
-      // พื้นผิวดินรอบถนน
-      ctx.fillStyle = '#060b14';
-      ctx.fillRect(0, h * 0.48, w, h * 0.52);
-
-      // เรนเดอร์ถนน 3 เลน
-      const horizonY = h * 0.48;
-      const roadTopW = w * 0.22;
-      const roadBottomW = w * 0.94;
-
-      ctx.fillStyle = '#111927';
-      ctx.beginPath();
-      ctx.moveTo((w - roadTopW) / 2, horizonY);
-      ctx.lineTo((w + roadTopW) / 2, horizonY);
-      ctx.lineTo((w + roadBottomW) / 2, h);
-      ctx.lineTo((w - roadBottomW) / 2, h);
-      ctx.closePath();
-      ctx.fill();
-
-      // ขอบถนนนีออน
-      ctx.strokeStyle = '#00f2fe';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo((w - roadTopW) / 2, horizonY);
-      ctx.lineTo((w - roadBottomW) / 2, h);
-      ctx.moveTo((w + roadTopW) / 2, horizonY);
-      ctx.lineTo((w + roadBottomW) / 2, h);
-      ctx.stroke();
-
-      // เส้นแบ่งเลนแบบขยับได้
-      roadStripeOffset = (roadStripeOffset + 0.035) % 1;
-      for (let l = 1; l <= 2; l++) {
-        const topLaneX = (w - roadTopW) / 2 + (roadTopW / 3) * l;
-        const bottomLaneX = (w - roadBottomW) / 2 + (roadBottomW / 3) * l;
-
-        ctx.strokeStyle = '#ff9f43';
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([14, 16]);
-        ctx.lineDashOffset = -roadStripeOffset * 30;
-        ctx.beginPath();
-        ctx.moveTo(topLaneX, horizonY);
-        ctx.lineTo(bottomLaneX, h);
-        ctx.stroke();
-      }
-      ctx.setLineDash([]);
-
-      // ซุ้มป้ายตัวเลือก 3 เลน
-      gateDepth += 0.012;
-      const s = missions[currentStage];
-      const scale = Math.pow(gateDepth, 2.6);
-      const gateY = horizonY + (h - horizonY) * scale;
-      const currentRoadW = roadTopW + (roadBottomW - roadTopW) * scale;
-
-      if (gateDepth > 0.15 && gateDepth < 0.96) {
-        const laneW = currentRoadW / 3;
-        const startX = (w - currentRoadW) / 2;
-
-        s.lanes.forEach((txt, idx) => {
-          const bX = startX + laneW * idx + laneW * 0.05;
-          const bW = laneW * 0.9;
-          const bH = Math.max(18, 56 * scale);
-
-          // ตัวกล่องป้าย
-          ctx.fillStyle = (idx === s.correct) ? 'rgba(5, 196, 107, 0.9)' : 'rgba(15, 23, 42, 0.9)';
-          ctx.strokeStyle = '#00f2fe';
-          ctx.lineWidth = Math.max(1, 3 * scale);
-          ctx.beginPath();
-          ctx.roundRect(bX, gateY - bH, bW, bH, 6 * scale);
-          ctx.fill();
-          ctx.stroke();
-
-          // ข้อความตัวเลือก
-          ctx.fillStyle = '#ffffff';
-          ctx.font = `bold ${Math.max(10, 16 * scale)}px Kanit`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(txt, bX + bW / 2, gateY - bH / 2);
-        });
-      }
-
-      // ตรวจสอบการชนเมื่อถึงจุด
-      if (gateDepth >= 0.88 && !isLocked) {
-        processGateCollision();
-      }
-
-      // เรนเดอร์ตัวรถแข่ง
-      currentCarX += (targetLane - currentCarX) * 0.18;
-      const laneStep = roadBottomW / 3;
-      const carDrawX = (w - roadBottomW) / 2 + laneStep * currentCarX + laneStep * 0.5;
-      const carDrawY = h - 90;
-
-      drawVectorCar(carDrawX, carDrawY);
-
-      requestAnimationFrame(renderLoop);
-    }
-
-    // วาดรถแข่งเวกเตอร์ด้วย Canvas Path
-    function drawVectorCar(x, y) {
-      ctx.save();
-      ctx.translate(x, y);
-
-      // เงารถ
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
-      ctx.beginPath();
-      ctx.ellipse(0, 15, 32, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // ไฟไอพ่นไนตรัส
-      ctx.fillStyle = '#00f2fe';
-      ctx.fillRect(-15, 18, 6, 6 + Math.random() * 8);
-      ctx.fillRect(9, 18, 6, 6 + Math.random() * 8);
-
-      // ล้อรถ 4 ล้อ
-      ctx.fillStyle = '#0a0f18';
-      ctx.fillRect(-28, -16, 6, 12);
-      ctx.fillRect(22, -16, 6, 12);
-      ctx.fillRect(-28, 8, 6, 12);
-      ctx.fillRect(22, 8, 6, 12);
-
-      // โครงสร้างตัวถังรถ
-      ctx.fillStyle = '#ff3838';
-      ctx.beginPath();
-      ctx.roundRect(-22, -22, 44, 40, 8);
-      ctx.fill();
-
-      // กระจกหน้ารถและห้องคนขับ
-      ctx.fillStyle = '#091322';
-      ctx.beginPath();
-      ctx.roundRect(-14, -14, 28, 16, 4);
-      ctx.fill();
-
-      // ไฟหน้าและไฟท้ายนีออน
-      ctx.fillStyle = '#00f2fe';
-      ctx.fillRect(-18, -24, 8, 3);
-      ctx.fillRect(10, -24, 8, 3);
-
-      ctx.fillStyle = '#ff9f43';
-      ctx.fillRect(-18, 17, 8, 3);
-      ctx.fillRect(10, 17, 8, 3);
-
-      // สปอยเลอร์ปีกหลัง
-      ctx.fillStyle = '#1e272e';
-      ctx.fillRect(-24, 14, 48, 4);
-
-      ctx.restore();
-    }
-
-    // ==========================================
-    // 5. COLLISION & AI LOGIC
-    // ==========================================
-    function processGateCollision() {
-      isLocked = true;
-      const s = missions[currentStage];
-      const isCorrect = (targetLane === s.correct);
-
-      const aiCard = document.getElementById('aiCard');
-      const aiMessage = document.getElementById('aiMessage');
-
-      if (isCorrect) {
-        Sfx.pass();
-        score++;
-        updateHud();
-      } else {
-        Sfx.crash();
-        lives = Math.max(0, lives - 1);
-        updateHud();
-
-        aiMessage.innerText = s.hint;
-        aiCard.style.display = 'flex';
-      }
-
-      setTimeout(() => {
-        aiCard.style.display = 'none';
-        if (currentStage + 1 < missions.length && lives > 0) {
-          currentStage++;
-          gateDepth = 0;
-          isLocked = false;
-          updateHud();
-        } else {
-          finishSession();
-        }
-      }, isCorrect ? 800 : 2500);
-    }
-
-    function finishSession() {
-      isGameOver = true;
-      document.getElementById('endScreen').style.display = 'flex';
-      const pct = ((score / 12) * 100).toFixed(2);
-      document.getElementById('finalScoreText').innerText = `${score} / 12`;
-      document.getElementById('finalPctText').innerText = `ประสิทธิภาพ E1 = ${pct}%`;
-    }
-
-    function launchGame() {
-      Sfx.init();
-      document.getElementById('startScreen').style.display = 'none';
-      currentStage = 0;
-      score = 0;
-      lives = 3;
-      gateDepth = 0;
-      isLocked = false;
-      isGameOver = false;
-      updateHud();
-      renderLoop();
+      posX = 0;
+      gateLock = false;
+      active = true;
+      syncTelemetry();
+      renderPipeline();
     }
   </script>
 </body>
