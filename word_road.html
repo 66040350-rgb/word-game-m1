@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Word Highway: Arcade Overdrive (E1)</title>
+  <title>Word City: RPG Exploration (E1)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800&family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
+      --primary: #005a9e;
+      --primary-dark: #003a66;
       --neon-cyan: #00f2fe;
       --neon-amber: #ff9f43;
-      --neon-crimson: #ee5253;
       --neon-emerald: #10ac84;
-      --chassis-bg: #050811;
+      --neon-ruby: #ee5253;
+      --dark-bg: #090e17;
+      --panel-bg: rgba(14, 23, 38, 0.95);
     }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -23,18 +27,918 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
+
     body {
-      background: var(--chassis-bg);
+      background: var(--dark-bg);
       font-family: 'Kanit', sans-serif;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
-      color: #fff;
+      color: #ffffff;
     }
-    .cabinet-frame {
+
+    /* กล่องเครื่องเกมที่ปรับขนาดตามสัดส่วนจอทุกชนิด */
+    .game-console {
       position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 560px;
+      max-height: 920px;
+      background: #000;
+      border: 2px solid #1e293b;
+      box-shadow: 0 0 50px rgba(0, 242, 254, 0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #worldCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* HUD Bar ด้านบน */
+    .rpg-hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      padding: 10px 14px;
+      background: linear-gradient(180deg, rgba(9, 14, 23, 0.95) 0%, rgba(9, 14, 23, 0) 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Chakra Petch', sans-serif;
+    }
+
+    .hud-chip {
+      background: var(--panel-bg);
+      border: 1px solid rgba(0, 242, 254, 0.35);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .life-gauge {
+      display: flex;
+      gap: 4px;
+    }
+    .life-pip {
+      width: 12px;
+      height: 14px;
+      background: var(--neon-ruby);
+      border-radius: 3px;
+      box-shadow: 0 0 8px var(--neon-ruby);
+      transition: all 0.3s;
+    }
+    .life-pip.dead {
+      background: #334155;
+      box-shadow: none;
+      opacity: 0.3;
+    }
+
+    /* เรดาร์แผนที่จิ๋ว (Mini-Map) */
+    .minimap-wrapper {
+      position: absolute;
+      top: 58px;
+      right: 12px;
+      z-index: 10;
+      width: 80px;
+      height: 80px;
+      background: rgba(9, 14, 23, 0.85);
+      border: 1px solid var(--neon-cyan);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    }
+    #minimapCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* ระบบ Touch Controls สำหรับมือถือและ iPad */
+    .touch-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 220px;
+      z-index: 15;
+      pointer-events: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 24px;
+    }
+
+    /* Virtual Joystick */
+    .joystick-base {
+      pointer-events: auto;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.15) 0%, rgba(14, 23, 38, 0.8) 70%);
+      border: 2px solid rgba(0, 242, 254, 0.4);
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+    }
+
+    .joystick-stick {
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle, var(--neon-cyan), #00a8ff);
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 0 15px var(--neon-cyan);
+      transition: transform 0.05s ease-out;
+    }
+
+    /* Action Trigger Button */
+    .action-pod {
+      pointer-events: auto;
+      width: 84px;
+      height: 84px;
+      background: radial-gradient(circle, #ff9f43, #d35400);
+      border: 3px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      font-weight: 800;
+      font-family: 'Chakra Petch';
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(255, 159, 67, 0.5);
+      transition: transform 0.1s;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .action-pod.ready {
+      opacity: 1;
+      pointer-events: auto;
+      animation: pulseAction 1.2s infinite alternate;
+    }
+    @keyframes pulseAction {
+      from { transform: scale(1); box-shadow: 0 0 15px rgba(255, 159, 67, 0.4); }
+      to { transform: scale(1.08); box-shadow: 0 0 30px rgba(255, 159, 67, 0.8); }
+    }
+    .action-pod:active {
+      transform: scale(0.92) !important;
+    }
+
+    /* Modal ปฏิบัติการในห้องแล็บอาคาร */
+    .lab-modal {
+      position: absolute;
+      inset: 12px;
+      z-index: 30;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 3px solid var(--primary);
+      box-shadow: 0 15px 50px rgba(0,0,0,0.85);
+      display: none;
+      flex-direction: column;
+      color: #1e293b;
+      overflow: hidden;
+      animation: modalSlide 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes modalSlide {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .lab-header {
+      background: var(--primary);
+      color: #ffffff;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lab-content {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+    }
+
+    /* Hands-on Interactive Simulated Office */
+    .office-workspace {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .sim-ribbon-bar {
+      background: #f1f5f9;
+      border-bottom: 2px solid #cbd5e1;
+      padding: 8px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .sim-button {
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .sim-button.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary-dark);
+    }
+
+    .sim-sheet {
+      background: #ffffff;
+      margin: 12px;
+      padding: 18px;
+      min-height: 110px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      transition: all 0.2s;
+    }
+
+    /* Curtains (Start & End) */
+    .game-curtain {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      background: rgba(9, 14, 23, 0.96);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .warp-btn {
+      background: linear-gradient(90deg, #10ac84, #1dd1a1);
+      border: none;
+      color: #ffffff;
+      padding: 16px 42px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(16, 172, 132, 0.5);
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Kanit';
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-console">
+    <!-- Top HUD Bar -->
+    <div class="rpg-hud">
+      <div class="hud-chip" style="color: var(--neon-cyan);">
+        <span>STATIONS:</span> <span id="hudCleared">0/12</span>
+      </div>
+      <div class="hud-chip" style="color: var(--neon-amber);">
+        <span>SCORE (E1):</span> <span id="hudScore">0</span>
+      </div>
+      <div class="hud-chip">
+        <div class="life-gauge" id="hudLifeGauge">
+          <div class="life-pip"></div>
+          <div class="life-pip"></div>
+          <div class="life-pip"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini-Map Sensor -->
+    <div class="minimap-wrapper">
+      <canvas id="minimapCanvas"></canvas>
+    </div>
+
+    <!-- Canvas World Display -->
+    <canvas id="worldCanvas"></canvas>
+
+    <!-- Touch Control Interface (Mobile & Tablet) -->
+    <div class="touch-overlay">
+      <div class="joystick-base" id="joyBase">
+        <div class="joystick-stick" id="joyStick"></div>
+      </div>
+      <div class="action-pod" id="actionBtn">
+        <span>ENTER</span>
+        <span style="font-size: 0.65rem; opacity: 0.8;">[SPACE]</span>
+      </div>
+    </div>
+
+    <!-- Interactive Mission Lab (Modal) -->
+    <div class="lab-modal" id="labModal">
+      <div class="lab-header">
+        <div>
+          <div style="font-size: 0.75rem; letter-spacing: 1px; color: var(--neon-amber);" id="labTopic">TOPIC</div>
+          <h3 style="font-size: 1.15rem;" id="labTitle">Station Building</h3>
+        </div>
+        <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem;" id="labCode">LAB-01</div>
+      </div>
+      
+      <div class="lab-content">
+        <div>
+          <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 6px;" id="labScenario">สถานการณ์จำลอง...</p>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;" id="labInstruction">คำสั่งภารกิจ</div>
+          
+          <!-- พื้นที่ Hands-on แบบไดนามิก -->
+          <div id="labInteractiveArea"></div>
+        </div>
+
+        <div>
+          <div id="aiAssistBox" style="display:none; background:#f1f5f9; border-left:4px solid var(--primary); padding:8px 12px; margin-bottom:12px; font-size:0.85rem; border-radius:4px;">
+            <strong style="color: var(--primary);">AI Copilot Radio:</strong> <span id="aiAssistText">คำแนะนำ</span>
+          </div>
+          <button class="warp-btn" style="width:100%; margin-top:0; border-radius:10px; justify-content:center;" id="btnSubmitTask">
+            ตรวจสอบและส่งมอบงาน 🚀
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Overlay Screen -->
+    <div class="game-curtain" id="startCurtain">
+      <div style="width:68px; height:68px; border:2px solid var(--neon-cyan); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:12px; box-shadow:0 0 25px rgba(0,242,254,0.35);">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="var(--neon-cyan)"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/><circle cx="7.5" cy="14.5" r="1.5"/><circle cx="16.5" cy="14.5" r="1.5"/></svg>
+      </div>
+      <h1 style="font-family:'Chakra Petch'; font-size:2.2rem; color:#fff; text-shadow:0 0 25px var(--neon-cyan);">WORD CITY RPG</h1>
+      <p style="color:#94a3b8; font-size:0.95rem; line-height:1.6; max-width:340px; margin-top:6px;">
+        ขับรถสำรวจเมืองจำลอง Microsoft Word ม.1 ทั้ง 12 สถานี<br>
+        <strong>"ขับรถไปจอดหน้าตึก แล้วกดปุ่ม ENTER เพื่อเข้าไปลงมือแก้ไขเอกสารจริง"</strong>
+      </p>
+      <div style="margin-top:14px; font-size:0.85rem; color:var(--neon-amber);">
+        🕹️ ใช้จอยสติ๊กสัมผัสบนจอ หรือใช้ปุ่ม W A S D / ลูกศร บนคีย์บอร์ด
+      </div>
+      <button class="warp-btn" onclick="igniteEngine()">
+        <span>START EXPLORATION</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
+      </button>
+    </div>
+
+    <!-- Final Result Overlay -->
+    <div class="game-curtain" id="endCurtain" style="display: none;">
+      <svg width="60" height="60" viewBox="0 0 24 24" fill="var(--neon-emerald)"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      <h1 style="font-family:'Chakra Petch'; font-size:2rem; color:var(--neon-emerald); text-shadow:0 0 25px var(--neon-emerald); margin-top:8px;">EXPLORATION CLEARED</h1>
+      
+      <div style="background:rgba(14,26,47,0.9); border:2px solid var(--neon-amber); border-radius:14px; padding:20px; width:85%; margin:16px 0;">
+        <div style="font-size:0.8rem; color:var(--neon-amber); letter-spacing:2px; font-family:'Chakra Petch';">OVERWORLD REPORT (E1)</div>
+        <div style="font-size:2.8rem; font-weight:800; color:#fff; margin:4px 0;" id="finalScoreVal">12 / 12</div>
+        <div style="font-size:0.95rem; color:var(--neon-emerald); font-weight:700;" id="finalPctVal">ประสิทธิภาพ E1 = 100%</div>
+      </div>
+
+      <p style="font-size:0.9rem; color:#94a3b8; max-width:320px;">
+        คุณสำรวจและผ่านครบทั้ง 12 สถานี พร้อมรับการทดสอบรวบยอด 20 ข้อใน <strong>Word Jump Game (E2)</strong>
+      </p>
+
+      <button class="warp-btn" onclick="alert('เชื่อมต่อส่งข้อมูลเข้าสู่ Word Jump Game (E2)')">
+        <span>เข้าสู่สนามสอบ E2</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. SYNTHESIZED PROCEDURAL SFX
+    // ==========================================
+    const AudioEngine = {
+      ctx: null,
+      init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+      beep(f, d, t = 'sine') {
+        try {
+          this.init();
+          const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+          o.type = t; o.frequency.setValueAtTime(f, this.ctx.currentTime);
+          g.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          g.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + d);
+          o.connect(g); g.connect(this.ctx.destination);
+          o.start(); o.stop(this.ctx.currentTime + d);
+        } catch(e) {}
+      },
+      btnTap() { this.beep(480, 0.05, 'triangle'); },
+      pass() { this.beep(523, 0.08); setTimeout(() => this.beep(784, 0.16), 70); },
+      fail() { this.beep(160, 0.2, 'sawtooth'); }
+    };
+
+    // ==========================================
+    // 2. STATIONS DATA (12 HANDS-ON MISSIONS)
+    // ==========================================
+    const worldStations = [
+      { id: 1, x: 220, y: 180, name: "Ribbon Tower", topic: "01. แถบคำสั่ง", scenario: "เอกสารรายงานต้องแทรกตารางและรูปภาพประกอบ", instruction: "คลิกสลับไปที่เมนูแท็บที่ใช้แทรกตารางและรูปภาพ:", type: "ribbon", target: "Insert", options: ["Home", "Insert", "Layout", "Review"], hint: "วัตถุตารางและรูปภาพทั้งหมด รวบรวมอยู่ในแท็บ Insert (แทรก)" },
+      { id: 2, x: 550, y: 180, name: "Save Station", topic: "02. การบันทึกแฟ้ม", scenario: "หม้อแปลงไฟฟ้าหน้าตึกเริ่มส่งเสียงดัง เสี่ยงต่อการไฟดับกะทันหัน", instruction: "กดปุ่มคีย์ลัดบนแป้นพิมพ์เพื่อ Save งานทันที:", type: "keys", target: "Ctrl + S", options: ["Ctrl + C", "Ctrl + S", "Ctrl + Z", "Ctrl + P"], hint: "Ctrl + S เป็นปุ่มลัดสากลสำหรับคำสั่ง Save (บันทึก)" },
+      { id: 3, x: 880, y: 180, name: "Font Garage", topic: "03. ตกแต่งแบบอักษร", scenario: "หัวข้อรายงานเรียบเกินไป ต้องการทำให้เป็นตัวหนา", instruction: "กดปุ่มเปิดใช้งานสไตล์เพื่อปรับหัวข้อให้เป็น 'ตัวหนา (Bold)':", type: "toggle_bold", hint: "ปุ่มไอคอน B (Bold) ทำหน้าที่ทำให้ตัวหนังสือมีความหนาชัดเจน" },
+      { id: 4, x: 220, y: 460, name: "Underline Pier", topic: "04. ขีดเส้นใต้", scenario: "ต้องการเน้นย้ำวันที่สำคัญในเอกสาร", instruction: "เลือกไอคอนที่ทำหน้าที่ 'ขีดเส้นใต้ข้อความ':", type: "ribbon", target: "U", options: ["B", "I", "U", "A"], hint: "ปุ่ม U ย่อมาจาก Underline ใช้สำหรับขีดเส้นใต้" },
+      { id: 5, x: 550, y: 460, name: "Center Plaza", topic: "05. จัดตำแหน่งย่อหน้า", scenario: "ชื่อเรื่องรายงานยังอยู่ชิดซ้าย ไม่สมดุลกับหน้ากระดาษ", instruction: "กดปุ่มปรับตำแหน่งย่อหน้าให้มาอยู่ 'กึ่งกลางหน้ากระดาษ':", type: "toggle_align", hint: "คำสั่ง Center (หรือไอคอนเส้นกึ่งกลาง) จะวางข้อความไว้ตรงกลางสมดุล" },
+      { id: 6, x: 880, y: 460, name: "List Terminal", topic: "06. รายการลำดับ", scenario: "มีขั้นตอนการทำงาน 3 ข้อที่ต้องทำตามลำดับก่อน-หลังอย่างเคร่งครัด", instruction: "เลือกเครื่องมือที่เหมาะสมที่สุดสำหรับแสดงลำดับขั้นตอน:", type: "ribbon", target: "Numbering (1,2,3)", options: ["Bullets (จุดกลม)", "Numbering (1,2,3)", "Shapes"], hint: "เมื่อมีลำดับชัดเจนควรเลือก Numbering เสมอ" },
+      { id: 7, x: 220, y: 740, name: "Image Park", topic: "07. จัดการรูปภาพ", scenario: "รูปภาพที่แทรกเข้ามาบังตัวหนังสือและเลื่อนตำแหน่งไม่ได้", instruction: "เลือกคำสั่งตัดข้อความเพื่อปลดล็อกให้ลากรูปได้อิสระ:", type: "ribbon", target: "Wrap Text", options: ["Crop", "Wrap Text", "Effects"], hint: "Wrap Text (ตัดข้อความ) เช่น Square ช่วยให้เลื่อนย้ายรูปได้อย่างอิสระ" },
+      { id: 8, x: 550, y: 740, name: "Table Castle", topic: "08. จัดการตาราง", scenario: "ต้องการรวมช่องตาราง 2 ช่องเข้าด้วยกันเพื่อใส่ชื่อหัวตารางรวม", instruction: "เลือกคำสั่งผสานเซลล์ที่เลือก:", type: "ribbon", target: "Merge Cells", options: ["Merge Cells", "Split Cells", "Insert Row"], hint: "Merge Cells ทำหน้าที่ผสานเซลล์ตารางที่ไฮไลต์เข้าด้วยกัน" },
+      { id: 9, x: 880, y: 740, name: "Layout Toll", topic: "09. ตั้งค่าหน้ากระดาษ", scenario: "ตารางข้อมูลสถิติมิติกว้างเกินหน้ากระดาษแนวตั้ง", instruction: "เลือกคำสั่งสำหรับปรับกระดาษเป็นแนวนอน (Landscape):", type: "ribbon", target: "Orientation", options: ["Margins", "Orientation", "Size"], hint: "คำสั่ง Orientation ในแท็บ Layout ใช้ปรับแนวตั้งหรือแนวนอน" },
+      { id: 10, x: 220, y: 1020, name: "Spell Lab", topic: "10. ตรวจทานคำผิด", scenario: "พบเส้นใต้หยัก 'สีแดง' ใต้ข้อความที่พิมพ์ในรายงาน", instruction: "เส้นหยักสีแดงใน Word แจ้งเตือนเกี่ยวกับสิ่งใด:", type: "ribbon", target: "สะกดคำผิด", options: ["สะกดคำผิด", "เว้นวรรคผิด", "ฟอนต์เพี้ยน"], hint: "เส้นใต้หยักสีแดงเตือนคำที่สะกดไม่ถูกต้องตามพจนานุกรม" },
+      { id: 11, x: 550, y: 1020, name: "Print Base", topic: "11. พิมพ์เอกสาร", scenario: "อาจารย์สั่งให้ส่งเอกสารเป็นรูปเล่มพิมพ์กระดาษจริง", instruction: "เลือกคีย์ลัดสำหรับเข้าหน้าพิมพ์งาน (Print) ด่วน:", type: "keys", target: "Ctrl + P", options: ["Ctrl + N", "Ctrl + P", "Ctrl + O"], hint: "Ctrl + P ย่อมาจาก Print ใช้เปิดหน้าสั่งพิมพ์" },
+      { id: 12, x: 880, y: 1020, name: "PDF Vault", topic: "12. ส่งออกไฟล์", scenario: "จัดทำรายงานเสร็จสิ้น ต้องส่งไฟล์แบบไม่ให้ฟอนต์หรือหน้าเลื่อนหลุด", instruction: "เลือกรูปแบบไฟล์ที่ล็อกการจัดหน้าและเปิดได้ทุกเครื่อง:", type: "ribbon", target: ".pdf", options: [".docx", ".txt", ".pdf"], hint: "ไฟล์ .pdf เป็นมาตรฐานคงรูปหน้ากระดาษและฟอนต์ไม่เลื่อน" }
+    ];
+
+    // ==========================================
+    // 3. OVERWORLD VEHICLE ENGINE & LERP CAMERA
+    // ==========================================
+    const canvas = document.getElementById('worldCanvas');
+    const ctx = canvas.getContext('2d');
+    const minimapCanvas = document.getElementById('minimapCanvas');
+    const mCtx = minimapCanvas.getContext('2d');
+
+    const WORLD_W = 1200;
+    const WORLD_H = 1300;
+
+    let player = {
+      x: 550, y: 600,
+      vx: 0, vy: 0,
+      speed: 0, maxSpeed: 4.8,
+      angle: 0,
+      radius: 18
+    };
+
+    let camera = { x: 550, y: 600 };
+    let clearedStations = new Set();
+    let score = 0;
+    let lives = 3;
+    let activeStation = null;
+    let inLab = false;
+    let isRunning = false;
+
+    // Particles (Tire Smoke)
+    let smokeParticles = [];
+
+    function resizeViewport() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      minimapCanvas.width = minimapCanvas.parentElement.clientWidth;
+      minimapCanvas.height = minimapCanvas.parentElement.clientHeight;
+    }
+    window.addEventListener('resize', resizeViewport);
+    resizeViewport();
+
+    // ==========================================
+    // 4. TOUCH ANALOG JOYSTICK CONTROLLER
+    // ==========================================
+    let joyInput = { x: 0, y: 0, active: false };
+    const joyBase = document.getElementById('joyBase');
+    const joyStick = document.getElementById('joyStick');
+    const joyRadius = 45;
+
+    function handleJoystick(e) {
+      e.preventDefault();
+      const touch = e.touches ? e.touches[0] : e;
+      const rect = joyBase.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      let dx = touch.clientX - centerX;
+      let dy = touch.clientY - centerY;
+      let dist = Math.hypot(dx, dy);
+
+      if (dist > joyRadius) {
+        dx = (dx / dist) * joyRadius;
+        dy = (dy / dist) * joyRadius;
+      }
+
+      joyStick.style.transform = `translate(${dx}px, ${dy}px)`;
+      joyInput.x = dx / joyRadius;
+      joyInput.y = dy / joyRadius;
+      joyInput.active = true;
+    }
+
+    function resetJoystick() {
+      joyStick.style.transform = `translate(0px, 0px)`;
+      joyInput = { x: 0, y: 0, active: false };
+    }
+
+    joyBase.addEventListener('pointerdown', (e) => { AudioEngine.btnTap(); handleJoystick(e); });
+    window.addEventListener('pointermove', (e) => { if (joyInput.active) handleJoystick(e); });
+    window.addEventListener('pointerup', resetJoystick);
+    window.addEventListener('pointercancel', resetJoystick);
+
+    // Keyboard Controller
+    let keys = { w: false, s: false, a: false, d: false };
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'w' || e.key === 'ArrowUp') keys.w = true;
+      if (e.key === 's' || e.key === 'ArrowDown') keys.s = true;
+      if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = true;
+      if (e.key === 'd' || e.key === 'ArrowRight') keys.d = true;
+      if (e.key === ' ' || e.key === 'Enter') triggerEnterStation();
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'w' || e.key === 'ArrowUp') keys.w = false;
+      if (e.key === 's' || e.key === 'ArrowDown') keys.s = false;
+      if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = false;
+      if (e.key === 'd' || e.key === 'ArrowRight') keys.d = false;
+    });
+
+    document.getElementById('actionBtn').addEventListener('click', triggerEnterStation);
+
+    // ==========================================
+    // 5. PHYSICS & CAMERA RENDER PIPELINE
+    // ==========================================
+    function updatePhysics() {
+      if (inLab || !isRunning) return;
+
+      let moveX = joyInput.active ? joyInput.x : ((keys.d ? 1 : 0) - (keys.a ? 1 : 0));
+      let moveY = joyInput.active ? joyInput.y : ((keys.s ? 1 : 0) - (keys.w ? 1 : 0));
+
+      let mag = Math.hypot(moveX, moveY);
+      if (mag > 0.15) {
+        let targetAngle = Math.atan2(moveY, moveX);
+        let diff = targetAngle - player.angle;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        player.angle += diff * 0.18;
+
+        player.speed += (player.maxSpeed - player.speed) * 0.12;
+
+        // ปล่อยควันยางเมื่อขับเคลื่อน
+        if (Math.random() < 0.3) {
+          smokeParticles.push({
+            x: player.x - Math.cos(player.angle) * 16,
+            y: player.y - Math.sin(player.angle) * 16,
+            r: 4, alpha: 0.6
+          });
+        }
+      } else {
+        player.speed *= 0.85;
+      }
+
+      player.vx = Math.cos(player.angle) * player.speed;
+      player.vy = Math.sin(player.angle) * player.speed;
+      player.x += player.vx;
+      player.y += player.vy;
+
+      // ล็อกกรอบ World Bounds
+      player.x = Math.max(40, Math.min(WORLD_W - 40, player.x));
+      player.y = Math.max(40, Math.min(WORLD_H - 40, player.y));
+
+      // กล้อง Lerp ติดตามรถ
+      camera.x += (player.x - camera.x) * 0.08;
+      camera.y += (player.y - camera.y) * 0.08;
+
+      // ตรวจสอบระยะเข้าใกล้ตึก
+      activeStation = null;
+      worldStations.forEach(st => {
+        let dist = Math.hypot(player.x - st.x, player.y - (st.y + 20));
+        if (dist < 60) activeStation = st;
+      });
+
+      const actPod = document.getElementById('actionBtn');
+      if (activeStation) {
+        actPod.classList.add('ready');
+      } else {
+        actPod.classList.remove('ready');
+      }
+    }
+
+    function renderWorld() {
+      if (!isRunning) return;
+      updatePhysics();
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.save();
+      // เลื่อนกล้องตามพิกัด
+      ctx.translate(w / 2 - camera.x, h / 2 - camera.y);
+
+      // 1. พื้นหญ้าและเมือง
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+      // กริดถนนเชื่อมโยง (Grid Highway)
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 64;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+      // ถนนวงแหวนหลัก
+      ctx.moveTo(220, 180); ctx.lineTo(880, 180);
+      ctx.lineTo(880, 1020); ctx.lineTo(220, 1020);
+      ctx.closePath();
+      // เส้นผ่ากลาง
+      ctx.moveTo(220, 460); ctx.lineTo(880, 460);
+      ctx.moveTo(220, 740); ctx.lineTo(880, 740);
+      ctx.moveTo(550, 180); ctx.lineTo(550, 1020);
+      ctx.stroke();
+
+      // เส้นประกลางถนน
+      ctx.strokeStyle = '#ff9f43';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([16, 16]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 2. ควันท่อไอเสีย (Smoke Particles)
+      smokeParticles.forEach((p, idx) => {
+        ctx.fillStyle = `rgba(148, 163, 184, ${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+        p.r += 0.3;
+        p.alpha -= 0.025;
+        if (p.alpha <= 0) smokeParticles.splice(idx, 1);
+      });
+
+      // 3. วาดสถานีทั้ง 12 อาคาร (Vector Buildings)
+      worldStations.forEach(st => {
+        const isDone = clearedStations.has(st.id);
+        const isTarget = activeStation && activeStation.id === st.id;
+
+        // เงาตึก
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(st.x - 38, st.y - 38 + 8, 76, 76);
+
+        // ตัวอาคารฐานล่าง
+        ctx.fillStyle = isDone ? '#10ac84' : (isTarget ? '#00f2fe' : '#1e3a8a');
+        ctx.beginPath();
+        ctx.roundRect(st.x - 38, st.y - 38, 76, 76, 12);
+        ctx.fill();
+
+        // ดาดฟ้าอาคาร
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.roundRect(st.x - 30, st.y - 30, 60, 60, 8);
+        ctx.fill();
+
+        // เสาไฟสัญญาณเตือนบนตึก
+        ctx.fillStyle = isDone ? '#10ac84' : (isTarget ? '#fbc531' : '#ee5253');
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ตัวเลขสถานี
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px Chakra Petch';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(st.id, st.x, st.y);
+
+        // ป้ายชื่ออาคาร
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 11px Kanit';
+        ctx.fillText(st.name, st.x, st.y + 48);
+      });
+
+      // 4. วาดรถสปอร์ต RPG ของผู้เล่น (Vector Graphics)
+      ctx.save();
+      ctx.translate(player.x, player.y);
+      ctx.rotate(player.angle);
+
+      // เงารถ
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 22, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // ไฟหน้ารถสาดแสง
+      const beam = ctx.createRadialGradient(18, 0, 2, 45, 0, 30);
+      beam.addColorStop(0, 'rgba(0, 242, 254, 0.4)');
+      beam.addColorStop(1, 'rgba(0, 242, 254, 0)');
+      ctx.fillStyle = beam;
+      ctx.beginPath();
+      ctx.moveTo(16, -10);
+      ctx.lineTo(55, -24);
+      ctx.lineTo(55, 24);
+      ctx.lineTo(16, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // ตัวถังรถสปอร์ต
+      ctx.fillStyle = '#ee5253';
+      ctx.beginPath();
+      ctx.roundRect(-18, -11, 36, 22, 6);
+      ctx.fill();
+
+      // กระจกหน้ารถ
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.roundRect(-4, -8, 12, 16, 3);
+      ctx.fill();
+
+      // สปอยเลอร์หลัง
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(-17, -10, 4, 20);
+
+      ctx.restore();
+
+      ctx.restore();
+
+      // เรนเดอร์เรดาร์ Mini-Map
+      renderMinimap();
+
+      requestAnimationFrame(renderWorld);
+    }
+
+    function renderMinimap() {
+      const mw = minimapCanvas.width;
+      const mh = minimapCanvas.height;
+      mCtx.clearRect(0, 0, mw, mh);
+
+      const scaleX = mw / WORLD_W;
+      const scaleY = mh / WORLD_H;
+
+      // ตึกในมินิแมพ
+      worldStations.forEach(st => {
+        mCtx.fillStyle = clearedStations.has(st.id) ? '#10ac84' : '#00f2fe';
+        mCtx.fillRect(st.x * scaleX - 2, st.y * scaleY - 2, 5, 5);
+      });
+
+      // รถผู้เล่นในมินิแมพ (จุดกระพริบสีแดง)
+      mCtx.fillStyle = '#ee5253';
+      mCtx.beginPath();
+      mCtx.arc(player.x * scaleX, player.y * scaleY, 3, 0, Math.PI * 2);
+      mCtx.fill();
+    }
+
+    // ==========================================
+    // 6. HANDS-ON MISSION LAB (INTERACTIVE)
+    // ==========================================
+    let currentTaskState = null;
+
+    function triggerEnterStation() {
+      if (!activeStation || inLab) return;
+      inLab = true;
+      AudioEngine.btnTap();
+
+      const st = activeStation;
+      document.getElementById('labTopic').innerText = st.topic;
+      document.getElementById('labTitle').innerText = `${st.id}. ${st.name}`;
+      document.getElementById('labCode').innerText = `STATION-0${st.id}`;
+      document.getElementById('labScenario').innerText = st.scenario;
+      document.getElementById('labInstruction').innerText = st.instruction;
+      document.getElementById('aiAssistBox').style.display = 'none';
+
+      const area = document.getElementById('labInteractiveArea');
+      area.innerHTML = '';
+      currentTaskState = null;
+
+      // สร้าง Mini-game จำลองหน้าจอ Word ตามประเภท
+      if (st.type === "ribbon" || st.type === "keys") {
+        const wrap = document.createElement('div');
+        wrap.style.display = 'grid';
+        wrap.style.gridTemplateColumns = '1fr';
+        wrap.style.gap = '8px';
+
+        st.options.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.className = 'sim-button';
+          btn.style.padding = '12px 16px';
+          btn.style.fontSize = '0.95rem';
+          btn.innerText = opt;
+          btn.onclick = () => {
+            AudioEngine.btnTap();
+            wrap.querySelectorAll('.sim-button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentTaskState = opt;
+          };
+          wrap.appendChild(btn);
+        });
+        area.appendChild(wrap);
+      } else if (st.type === "toggle_bold" || st.type === "toggle_align") {
+        const office = document.createElement('div');
+        office.className = 'office-workspace';
+
+        const ribbon = document.createElement('div');
+        ribbon.className = 'sim-ribbon-bar';
+
+        const bBtn = document.createElement('button');
+        bBtn.className = 'sim-button';
+        bBtn.innerHTML = '<strong>B</strong> ตัวหนา';
+
+        const cBtn = document.createElement('button');
+        cBtn.className = 'sim-button';
+        cBtn.innerHTML = '≡ กึ่งกลาง';
+
+        ribbon.appendChild(bBtn);
+        ribbon.appendChild(cBtn);
+
+        const sheet = document.createElement('div');
+        sheet.className = 'sim-sheet';
+        const docText = document.createElement('div');
+        docText.innerText = 'รายงานวิชาคอมพิวเตอร์และเทคโนโลยี ชั้น ม.1';
+        sheet.appendChild(docText);
+
+        bBtn.onclick = () => {
+          AudioEngine.btnTap();
+          bBtn.classList.toggle('active');
+          docText.style.fontWeight = bBtn.classList.contains('active') ? '700' : '400';
+          if (st.type === "toggle_bold") currentTaskState = bBtn.classList.contains('active') ? 'bold' : null;
+        };
+
+        cBtn.onclick = () => {
+          AudioEngine.btnTap();
+          cBtn.classList.toggle('active');
+          docText.style.textAlign = cBtn.classList.contains('active') ? 'center' : 'left';
+          if (st.type === "toggle_align") currentTaskState = cBtn.classList.contains('active') ? 'center' : null;
+        };
+
+        office.appendChild(ribbon);
+        office.appendChild(sheet);
+        area.appendChild(office);
+      }
+
+      document.getElementById('labModal').style.display = 'flex';
+    }
+
+    document.getElementById('btnSubmitTask').onclick = () => {
+      const st = activeStation;
+      const isCorrect = (currentTaskState === st.target || currentTaskState === 'bold' || currentTaskState === 'center');
+
+      if (isCorrect) {
+        AudioEngine.pass();
+        if (!clearedStations.has(st.id)) {
+          clearedStations.add(st.id);
+          score++;
+        }
+        updateHud();
+        document.getElementById('labModal').style.display = 'none';
+        inLab = false;
+
+        if (clearedStations.size >= worldStations.length) {
+          concludeExploration();
+        }
+      } else {
+        AudioEngine.fail();
+        lives = Math.max(0, lives - 1);
+        updateHud();
+
+        document.getElementById('aiAssistText').innerText = st.hint;
+        document.getElementById('aiAssistBox').style.display = 'block';
+      }
+    };
+
+    function updateHud() {
+      document.getElementById('hudCleared').innerText = `${clearedStations.size}/12`;
+      document.getElementById('hudScore').innerText = score;
+
+      const pips = document.querySelectorAll('.life-pip');
+      pips.forEach((p, idx) => {
+        if (idx < lives) p.classList.remove('dead');
+        else p.classList.add('dead');
+      });
+    }
+
+    function concludeExploration() {
+      isRunning = false;
+      document.getElementById('endCurtain').style.display = 'flex';
+      const pct = ((score / 12) * 100).toFixed(2);
+      document.getElementById('finalScoreVal').innerText = `${score} / 12`;
+      document.getElementById('finalPctVal').innerText = `ประสิทธิภาพ E1 = ${pct}%`;
+    }
+
+    function igniteEngine() {
+      AudioEngine.init();
+      document.getElementById('startCurtain').style.display = 'none';
+      clearedStations.clear();
+      score = 0;
+      lives = 3;
+      isRunning = true;
+      updateHud();
+      renderWorld();
+    }
+  </script>
+</body>
+</html>      position: relative;
       width: 100vw;
       max-width: 500px;
       height: 100vh;
