@@ -3,118 +3,435 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Word City: RPG Lab Edition</title>
+  <title>Word Metropolis: Master Edition (E1)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=Kanit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Kanit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #040811;
+      --panel-surface: #0a101d;
+      --panel-border: #1a283e;
+      --accent-cyan: #00f2fe;
+      --accent-gold: #f59e0b;
+      --accent-crimson: #ef4444;
+      --accent-emerald: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    body {
+      background: var(--bg-dark);
+      font-family: 'Kanit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: var(--text-main);
+    }
+
+    /* เครื่องเกม Studio Chassis */
+    .viewport-chassis {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 540px;
+      max-height: 920px;
+      background: #000000;
+      border: 2px solid var(--panel-border);
+      box-shadow: 0 0 60px rgba(0, 242, 254, 0.12), inset 0 0 20px rgba(0,0,0,0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #worldCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Cockpit HUD ด้านบน */
+    .cockpit-hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(4, 8, 17, 0.98) 0%, rgba(4, 8, 17, 0) 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Orbitron', monospace;
+      pointer-events: none;
+    }
+
+    .telemetry-tag {
+      background: rgba(10, 16, 29, 0.88);
+      border: 1px solid var(--panel-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .hull-meter {
+      display: flex;
+      gap: 5px;
+    }
+    .hull-block {
+      width: 14px;
+      height: 16px;
+      background: var(--accent-crimson);
+      border-radius: 2px;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hull-block.dead {
+      background: #1e293b;
+      box-shadow: none;
+      opacity: 0.25;
+    }
+
+    /* Radar Minimap */
+    .radar-container {
+      position: absolute;
+      top: 60px;
+      right: 14px;
+      z-index: 10;
+      width: 86px;
+      height: 86px;
+      background: rgba(6, 11, 22, 0.9);
+      border: 1px solid var(--accent-cyan);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+      pointer-events: none;
+    }
+    #minimapCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Touch Control Interface (มือถือ & iPad) */
+    .touch-deck {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 220px;
+      z-index: 20;
+      pointer-events: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 24px;
+    }
+
+    .virtual-analog {
+      pointer-events: auto;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(0, 242, 254, 0.08) 0%, rgba(10, 16, 29, 0.85) 75%);
+      border: 2px solid rgba(0, 242, 254, 0.35);
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.8);
+    }
+    .analog-stick {
+      width: 52px;
+      height: 52px;
+      background: radial-gradient(circle, #00f2fe, #0077b6);
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      position: absolute;
+      box-shadow: 0 0 15px var(--accent-cyan);
+      transition: transform 0.05s ease-out;
+    }
+
+    .action-trigger {
+      pointer-events: auto;
+      width: 88px;
+      height: 88px;
+      background: radial-gradient(circle, #f59e0b, #b45309);
+      border: 3px solid #ffffff;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #ffffff;
+      font-weight: 900;
+      font-family: 'Orbitron';
+      font-size: 0.9rem;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+      opacity: 0.35;
+      pointer-events: none;
+      transition: all 0.2s;
+    }
+    .action-trigger.active {
+      opacity: 1;
+      pointer-events: auto;
+      animation: pulseTrigger 1.2s infinite alternate;
+    }
+    @keyframes pulseTrigger {
+      from { transform: scale(1); box-shadow: 0 0 15px rgba(245, 158, 11, 0.4); }
+      to { transform: scale(1.08); box-shadow: 0 0 35px rgba(245, 158, 11, 0.8); }
+    }
+    .action-trigger:active {
+      transform: scale(0.92) !important;
+    }
+
+    /* หน้าจอห้องแล็บปฏิบัติการ (Hands-on Lab) */
+    .lab-chassis {
+      position: absolute;
+      inset: 12px;
+      z-index: 30;
+      background: #ffffff;
+      border-radius: 12px;
+      border: 2px solid #005a9e;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.85);
+      display: none;
+      flex-direction: column;
+      color: #0f172a;
+      overflow: hidden;
+      animation: labOpen 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes labOpen {
+      from { transform: scale(0.94); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .lab-top-banner {
+      background: #005a9e;
+      color: #ffffff;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lab-workspace {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+    }
+
+    /* จำลอง Workspace โปรแกรม Word เสมือนจริง */
+    .software-frame {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .software-ribbon {
+      background: #f1f5f9;
+      border-bottom: 2px solid #cbd5e1;
+      padding: 8px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .software-btn {
+      background: #ffffff;
+      border: 1px solid #94a3b8;
+      border-radius: 4px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .software-btn.active {
+      background: #005a9e;
+      color: #ffffff;
+      border-color: #003865;
+    }
+    .software-page {
+      background: #ffffff;
+      margin: 12px;
+      padding: 18px;
+      min-height: 100px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      border-radius: 2px;
+    }
+
+    /* Curtain Screen (หน้าจอสตาร์ท & สรุปผล) */
+    .curtain-view {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      background: rgba(4, 8, 17, 0.98);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 28px;
+      text-align: center;
+    }
+
+    .studio-btn {
+      background: linear-gradient(90deg, var(--accent-emerald), #059669);
+      border: none;
+      color: #ffffff;
+      padding: 16px 44px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+      margin-top: 24px;
+      font-family: 'Kanit';
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.1s;
+    }
+    .studio-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
 </head>
-<body style="margin:0; padding:0; background:#070b12; color:#fff; font-family:'Kanit',sans-serif; overflow:hidden; display:flex; justify-content:center; align-items:center; height:100vh; user-select:none; -webkit-tap-highlight-color:transparent; touch-action:manipulation;">
+<body>
 
-  <!-- Viewport คลุมเกม -->
-  <div id="gameViewport" style="position:relative; width:100vw; max-width:480px; height:100vh; max-height:860px; background:#0f172a; overflow:hidden; border:2px solid #1e293b; box-shadow:0 0 40px rgba(0,242,254,0.15); display:flex; flex-direction:column;">
-
-    <!-- Top HUD -->
-    <div style="position:absolute; top:0; left:0; right:0; z-index:10; padding:10px 14px; background:linear-gradient(180deg, rgba(7,11,18,0.95) 0%, rgba(7,11,18,0) 100%); display:flex; justify-content:space-between; align-items:center; font-family:'Chakra Petch',sans-serif;">
-      <div style="background:rgba(15,23,42,0.85); border:1px solid #00f2fe; padding:4px 10px; border-radius:12px; font-size:0.85rem; font-weight:700; color:#00f2fe;">
-        STATION: <span id="hudStation">0/12</span>
+  <div class="viewport-chassis">
+    <!-- Top HUD Data -->
+    <div class="cockpit-hud">
+      <div class="telemetry-tag" style="color: var(--accent-cyan);">
+        <span>LABS</span> <span id="hudCleared">0/12</span>
       </div>
-      <div style="background:rgba(15,23,42,0.85); border:1px solid #ff9f43; padding:4px 10px; border-radius:12px; font-size:0.85rem; font-weight:700; color:#ff9f43;">
-        SCORE: <span id="hudScore">0</span>
+      <div class="telemetry-tag" style="color: var(--accent-gold);">
+        <span>SCORE (E1)</span> <span id="hudScore">0</span>
       </div>
-      <div style="background:rgba(15,23,42,0.85); border:1px solid #ee5253; padding:4px 10px; border-radius:12px; font-size:0.85rem; font-weight:700;">
-        <span id="hudLife" style="letter-spacing:2px;">❤️❤️❤️</span>
-      </div>
-    </div>
-
-    <!-- Canvas แสดงผลแผนที่เมือง RPG -->
-    <canvas id="cityCanvas" style="width:100%; height:100%; display:block;"></canvas>
-
-    <!-- แผงปุ่มควบคุมเสมือน D-Pad -->
-    <div style="position:absolute; bottom:16px; left:16px; z-index:15; display:grid; grid-template-columns:52px 52px 52px; grid-template-rows:52px 52px 52px; gap:4px; pointer-events:auto;">
-      <div></div>
-      <button id="padUp" style="background:#1e293b; border:2px solid #00f2fe; border-radius:8px; color:#fff; font-size:1.2rem; display:flex; justify-content:center; align-items:center; cursor:pointer;">▲</button>
-      <div></div>
-      <button id="padLeft" style="background:#1e293b; border:2px solid #00f2fe; border-radius:8px; color:#fff; font-size:1.2rem; display:flex; justify-content:center; align-items:center; cursor:pointer;">◀</button>
-      <div></div>
-      <button id="padRight" style="background:#1e293b; border:2px solid #00f2fe; border-radius:8px; color:#fff; font-size:1.2rem; display:flex; justify-content:center; align-items:center; cursor:pointer;">▶</button>
-      <div></div>
-      <button id="padDown" style="background:#1e293b; border:2px solid #00f2fe; border-radius:8px; color:#fff; font-size:1.2rem; display:flex; justify-content:center; align-items:center; cursor:pointer;">▼</button>
-      <div></div>
-    </div>
-
-    <!-- ปุ่ม Action เข้าตึก -->
-    <div style="position:absolute; bottom:26px; right:20px; z-index:15; pointer-events:auto;">
-      <button id="btnEnterLab" style="width:84px; height:84px; border-radius:50%; background:radial-gradient(circle, #ff9f43, #d35400); border:3px solid #fff; color:#fff; font-weight:800; font-family:'Chakra Petch'; font-size:1rem; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; opacity:0.4; pointer-events:none; box-shadow:0 0 20px rgba(255,159,67,0.5);">
-        <span>ENTER</span>
-        <span style="font-size:0.65rem;">[SPACE]</span>
-      </button>
-    </div>
-
-    <!-- หน้าต่างทำภารกิจ Hands-on ในตึก -->
-    <div id="missionModal" style="position:absolute; inset:12px; z-index:30; background:#ffffff; border-radius:16px; border:3px solid #005a9e; box-shadow:0 15px 50px rgba(0,0,0,0.8); display:none; flex-direction:column; color:#1e293b; overflow:hidden;">
-      <div style="background:#005a9e; color:#fff; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div id="modalTopic" style="font-size:0.75rem; color:#ff9f43; font-family:'Chakra Petch';">TOPIC</div>
-          <div id="modalName" style="font-size:1.15rem; font-weight:700;">Station Building</div>
+      <div class="telemetry-tag">
+        <div class="hull-meter" id="hullMeter">
+          <div class="hull-block"></div>
+          <div class="hull-block"></div>
+          <div class="hull-block"></div>
         </div>
-        <div style="background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:6px; font-size:0.8rem;" id="modalStationNum">STATION 1</div>
+      </div>
+    </div>
+
+    <!-- Minimap Radar -->
+    <div class="radar-container">
+      <canvas id="minimapCanvas"></canvas>
+    </div>
+
+    <!-- Canvas แสดงผลโลก Overworld -->
+    <canvas id="worldCanvas"></canvas>
+
+    <!-- แผงสัมผัสเสมือนจริงสำหรับมือถือ & iPad -->
+    <div class="touch-deck">
+      <div class="virtual-analog" id="analogBase">
+        <div class="analog-stick" id="analogStick"></div>
+      </div>
+      <div class="action-trigger" id="btnEnter">
+        <span>ENTER</span>
+        <span style="font-size: 0.65rem; opacity: 0.85;">[SPACE]</span>
+      </div>
+    </div>
+
+    <!-- หน้าต่างจำลองห้องปฏิบัติการ (Hands-on Mission Lab) -->
+    <div class="lab-chassis" id="labModal">
+      <div class="lab-top-banner">
+        <div>
+          <div style="font-size: 0.75rem; letter-spacing: 1px; color: var(--accent-gold); font-family: 'Orbitron';" id="modalTopic">TOPIC</div>
+          <div style="font-size: 1.15rem; font-weight: 700;" id="modalStationTitle">Station Lab</div>
+        </div>
+        <div style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-family: 'Orbitron';" id="modalCode">STATION-01</div>
       </div>
 
-      <div style="padding:16px; flex:1; display:flex; flex-direction:column; justify-content:space-between; overflow-y:auto;">
+      <div class="lab-workspace">
         <div>
-          <div id="modalScenario" style="font-size:0.9rem; color:#64748b; margin-bottom:6px;">สถานการณ์จำลอง...</div>
-          <div id="modalPrompt" style="font-weight:700; font-size:1.05rem; margin-bottom:12px;">คำสั่งภารกิจ</div>
+          <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 6px;" id="modalScenario">สถานการณ์จำลอง...</p>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 12px;" id="modalInstruction">คำสั่งภารกิจ</div>
           
           <div id="modalInteractiveArea"></div>
         </div>
 
         <div>
-          <div id="aiBox" style="display:none; background:#f1f5f9; border-left:4px solid #005a9e; padding:8px 12px; margin-bottom:12px; font-size:0.85rem; border-radius:4px;">
-            <strong style="color:#005a9e;">AI Assistant:</strong> <span id="aiText">คำแนะนำ</span>
-          </div>
-          <button id="btnSubmitLab" style="width:100%; background:linear-gradient(90deg, #10ac84, #1dd1a1); border:none; color:#fff; padding:14px; font-size:1.1rem; font-weight:700; border-radius:30px; cursor:pointer; font-family:'Kanit';">
-            ส่งผลการปฏิบัติงาน 🚀
+          <button class="studio-btn" style="width: 100%; justify-content: center; margin-top: 0;" id="btnSubmitLab">
+            ส่งมอบงานตรวจสอบ
           </button>
         </div>
       </div>
     </div>
 
-    <!-- จอเริ่มต้นเกม -->
-    <div id="startScreen" style="position:absolute; inset:0; z-index:40; background:rgba(7,11,18,0.96); display:flex; flex-direction:column; justify-content:center; align-items:center; padding:24px; text-align:center;">
-      <h1 style="font-family:'Chakra Petch'; font-size:2.4rem; color:#fff; text-shadow:0 0 25px #00f2fe; margin-bottom:8px;">WORD CITY RPG</h1>
-      <p style="color:#94a3b8; font-size:0.95rem; line-height:1.6; max-width:320px;">
-        ขับรถสำรวจเมือง Microsoft Word ม.1 ทั้ง 12 สถานี<br>
-        <strong>"ขับรถไปเทียบหน้าตึก แล้วกดปุ่ม ENTER เพื่อเข้าไปลงมือแก้เอกสารจริง"</strong>
+    <!-- Start Screen Curtain -->
+    <div class="curtain-view" id="startCurtain">
+      <div style="width: 70px; height: 70px; border: 2px solid var(--accent-cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 0 30px rgba(0, 242, 254, 0.3);">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="var(--accent-cyan)"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+      </div>
+      <h1 style="font-family: 'Orbitron'; font-size: 2.3rem; font-style: italic; font-weight: 900; letter-spacing: 1px; color: #ffffff;">WORD METROPOLIS</h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; max-width: 340px; margin-top: 8px;">
+        ขับรถสปอร์ตสำรวจเมืองจำลอง Microsoft Word ม.1 ทั้ง 12 สถานี<br>
+        <strong>"ขับรถไปจอดเทียบหน้าตึก แล้วกดปุ่ม ENTER เพื่อเข้าไปลงมือแก้ไขเอกสารจริง"</strong>
       </p>
-      <div style="margin-top:14px; font-size:0.85rem; color:#ff9f43;">
-        ควบคุมด้วย D-Pad บนหน้าจอ หรือกด W, A, S, D บนคีย์บอร์ด
+      <div style="margin-top: 16px; font-size: 0.85rem; color: var(--accent-gold); font-family: 'Orbitron';">
+        ANALOG JOYSTICK / KEYBOARD [W, A, S, D]
       </div>
-      <button onclick="bootGame()" style="background:linear-gradient(90deg, #10ac84, #1dd1a1); border:none; color:#fff; padding:16px 44px; font-size:1.15rem; font-weight:700; border-radius:40px; cursor:pointer; margin-top:20px; font-family:'Kanit'; box-shadow:0 0 25px rgba(16,172,132,0.4);">
-        START MISSION 🚗
+      <button class="studio-btn" onclick="bootEngine()">
+        <span>START MISSION</span>
       </button>
     </div>
 
-    <!-- จอจบเกม สรุปผล E1 -->
-    <div id="endScreen" style="position:absolute; inset:0; z-index:40; background:rgba(7,11,18,0.96); display:none; flex-direction:column; justify-content:center; align-items:center; padding:24px; text-align:center;">
-      <h1 style="font-family:'Chakra Petch'; font-size:2rem; color:#10ac84; margin-bottom:8px;">MISSION COMPLETED</h1>
-      <div style="background:rgba(15,23,42,0.9); border:2px solid #ff9f43; border-radius:14px; padding:20px; width:85%; margin:16px 0;">
-        <div style="font-size:0.8rem; color:#ff9f43; letter-spacing:1px; font-family:'Chakra Petch';">OVERWORLD RECORD (E1)</div>
-        <div id="finalScore" style="font-size:2.8rem; font-weight:700; color:#fff; margin:6px 0;">12 / 12</div>
-        <div id="finalPct" style="font-size:0.95rem; color:#10ac84; font-weight:700;">ประสิทธิภาพ E1 = 100%</div>
+    <!-- End Screen Curtain -->
+    <div class="curtain-view" id="endCurtain" style="display: none;">
+      <div style="width: 70px; height: 70px; border: 2px solid var(--accent-emerald); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="var(--accent-emerald)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
       </div>
-      <button onclick="alert('ส่งคะแนนเข้าสู่แบบทดสอบ Word Jump Game (E2)')" style="background:linear-gradient(90deg, #10ac84, #1dd1a1); border:none; color:#fff; padding:15px 36px; font-size:1.1rem; font-weight:700; border-radius:40px; cursor:pointer; font-family:'Kanit';">
-        เข้าสู่สนามสอบ E2 🏆
+      <h1 style="font-family: 'Orbitron'; font-size: 2.1rem; color: var(--accent-emerald); margin-bottom: 6px;">MISSION CLEARED</h1>
+      <div style="background: var(--panel-surface); border: 2px solid var(--accent-gold); border-radius: 10px; padding: 20px; width: 85%; margin: 16px 0;">
+        <div style="font-size: 0.8rem; color: var(--accent-gold); letter-spacing: 2px; font-family: 'Orbitron';">OVERWORLD RECORD (E1)</div>
+        <div style="font-size: 2.8rem; font-weight: 900; color: #ffffff; margin: 4px 0;" id="finalScoreVal">12 / 12</div>
+        <div style="font-size: 0.95rem; color: var(--accent-emerald); font-weight: 700;" id="finalPctVal">ประสิทธิภาพ E1 = 100%</div>
+      </div>
+      <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 320px;">
+        คุณสำรวจและผ่านครบทั้ง 12 สถานี พร้อมรับการทดสอบรวบยอดใน <strong>Word Jump Game (E2)</strong>
+      </p>
+      <button class="studio-btn" onclick="alert('เชื่อมต่อไปยังแบบทดสอบรวบยอด Word Jump Game (E2)')">
+        <span>PROCEED TO E2</span>
       </button>
     </div>
-
   </div>
 
   <script>
-    // 1. ระบบเสียงสังเคราะห์ในตัว
-    const Sfx = {
+    // 1. PROCEDURAL SOUND SYNTHESIZER (Web Audio API)
+    const AudioEngine = {
       ctx: null,
       init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-      play(f, d, t='sine') {
+      pulse(f, d, t = 'sine') {
         try {
           this.init();
           const o = this.ctx.createOscillator(), g = this.ctx.createGain();
@@ -125,95 +442,134 @@
           o.start(); o.stop(this.ctx.currentTime + d);
         } catch(e) {}
       },
-      click() { this.play(400, 0.04, 'triangle'); },
-      pass() { this.play(523, 0.08); setTimeout(() => this.play(784, 0.16), 70); },
-      fail() { this.play(150, 0.2, 'sawtooth'); }
+      click() { this.pulse(450, 0.04, 'triangle'); },
+      pass() { this.pulse(523, 0.08); setTimeout(() => this.pulse(784, 0.16), 70); },
+      fail() { this.pulse(150, 0.22, 'sawtooth'); }
     };
 
-    // 2. ข้อมูลสถานี 12 แห่งและภารกิจปฏิบัติการจริง
-    const stations = [
-      { id: 1, x: 200, y: 180, name: "Ribbon Tower", topic: "01. เมนูคำสั่ง", scenario: "ต้องการเพิ่มรูปภาพและตารางสรุปผลเข้าเอกสาร", prompt: "คลิกสลับแท็บริบบอนเพื่อเปิดเครื่องมือแทรก:", type: "ribbon", target: "Insert", options: ["Home", "Insert", "Layout", "View"], hint: "วัตถุ ตาราง และรูปภาพ ทั้งหมดอยู่ในแท็บ Insert" },
-      { id: 2, x: 500, y: 180, name: "Save Base", topic: "02. บันทึกแฟ้ม", scenario: "ระบบแจ้งเตือนแบตเตอรี่ต่ำ เสี่ยงงานสูญหาย", prompt: "กดคีย์ลัดบนหน้าจอเพื่อ Save ข้อมูลด่วน:", type: "keys", target: "Ctrl + S", options: ["Ctrl + C", "Ctrl + S", "Ctrl + Z"], hint: "Ctrl + S เป็นปุ่มลัดสากลสำหรับคำสั่ง Save" },
-      { id: 3, x: 800, y: 180, name: "Font Garage", topic: "03. ตกแต่งอักษร", scenario: "หัวข้อรายงานเรียบเกินไป ต้องการเน้นความสำคัญ", prompt: "กดเปิดปุ่มเพื่อปรับข้อความตัวอย่างให้กลายเป็น 'ตัวหนา (Bold)':", type: "toggle_bold", hint: "ปุ่ม B (Bold) ทำหน้าที่เพิ่มความหนาให้ตัวหนังสือ" },
-      { id: 4, x: 200, y: 440, name: "Underline Pier", topic: "04. ขีดเส้นใต้", scenario: "ต้องการเน้นย้ำวันที่ส่งเอกสาร", prompt: "เลือกไอคอนที่ใช้ขีดเส้นใต้ข้อความ:", type: "ribbon", target: "U", options: ["B", "I", "U", "A"], hint: "ปุ่ม U ย่อมาจาก Underline ใช้ขีดเส้นใต้" },
-      { id: 5, x: 500, y: 440, name: "Center Plaza", topic: "05. จัดย่อหน้า", scenario: "ชื่อรายงานยังอยู่ชิดซ้าย ไม่สมดุลกับกระดาษ", prompt: "กดปุ่มเพื่อปรับข้อความให้อยู่ 'กึ่งกลางหน้ากระดาษ':", type: "toggle_align", hint: "คำสั่ง Center ช่วยจัดข้อความให้อยู่จุดกึ่งกลางสมดุล" },
-      { id: 6, x: 800, y: 440, name: "List Terminal", topic: "06. ลำดับขั้นตอน", scenario: "มีข้อปฏิบัติ 3 ข้อที่ต้องทำตามลำดับก่อนหลัง", prompt: "เลือกรูปแบบรายการที่เหมาะสม:", type: "ribbon", target: "Numbering (1,2,3)", options: ["Bullets (จุดกลม)", "Numbering (1,2,3)", "Shapes"], hint: "เมื่อมีลำดับชัดเจนควรเลือก Numbering เสมอ" },
-      { id: 7, x: 200, y: 700, name: "Image Park", topic: "07. จัดการรูปภาพ", scenario: "ภาพที่แทรกเข้ามาบังข้อความและขยับไม่ได้", prompt: "เลือกคำสั่งตัดคำเพื่อปลดล็อกให้ลากรูปได้อิสระ:", type: "ribbon", target: "Wrap Text", options: ["Crop", "Wrap Text", "Effects"], hint: "คำสั่ง Wrap Text ช่วยปรับการตัดคำให้ขยับภาพได้สะดวก" },
-      { id: 8, x: 500, y: 700, name: "Table Castle", topic: "08. จัดการตาราง", scenario: "ต้องการรวมช่องตาราง 2 ช่องเข้าด้วยกันเป็นช่องเดียว", prompt: "เลือกคำสั่งผสานเซลล์ตาราง:", type: "ribbon", target: "Merge Cells", options: ["Merge Cells", "Split Cells", "Insert Row"], hint: "Merge Cells ทำหน้าที่รวมเซลล์ตารางเข้าด้วยกัน" },
-      { id: 9, x: 800, y: 700, name: "Layout Toll", topic: "09. หน้ากระดาษ", scenario: "ตารางกว้างเกินหน้ากระดาษแนวตั้ง", prompt: "ปรับแนวกระดาษให้เป็น 'แนวนอน (Landscape)':", type: "ribbon", target: "Orientation", options: ["Margins", "Orientation", "Size"], hint: "คำสั่ง Orientation ในแท็บ Layout ใช้ปรับแนวตั้งหรือแนวนอน" },
-      { id: 10, x: 200, y: 960, name: "Spell Lab", topic: "10. ตรวจคำผิด", scenario: "พบเส้นใต้หยัก 'สีแดง' ใต้ข้อความที่พิมพ์", prompt: "เส้นหยักสีแดงใน Word แจ้งเตือนเกี่ยวกับสิ่งใด:", type: "ribbon", target: "สะกดคำผิด", options: ["สะกดคำผิด", "เว้นวรรคผิด", "ฟอนต์เพี้ยน"], hint: "เส้นหยักสีแดงบ่งบอกว่าระบบตรวจพบคำสะกดผิด" },
-      { id: 11, x: 500, y: 960, name: "Print Station", topic: "11. พิมพ์เอกสาร", scenario: "ต้องการสั่งพิมพ์งานออกเครื่องพิมพ์ด่วน", prompt: "เลือกคีย์ลัดสำหรับเข้าหน้าพิมพ์งาน:", type: "keys", target: "Ctrl + P", options: ["Ctrl + N", "Ctrl + P", "Ctrl + O"], hint: "Ctrl + P ย่อมาจาก Print ใช้เปิดหน้าต่างสั่งพิมพ์" },
-      { id: 12, x: 800, y: 960, name: "PDF Vault", topic: "12. ส่งออกไฟล์", scenario: "รายงานเสร็จสิ้น ต้องส่งไฟล์แบบไม่ให้ฟอนต์หรือหน้าเลื่อน", prompt: "เลือกรูปแบบไฟล์ที่ล็อกหน้ากระดาษคงรูป:", type: "ribbon", target: ".pdf", options: [".docx", ".txt", ".pdf"], hint: "ไฟล์ .pdf เป็นมาตรฐานล็อกหน้ากระดาษและฟอนต์ไม่ให้เพี้ยน" }
+    // 2. ฐานข้อมูล 12 สถานี และภารกิจ HANDS-ON ปฏิบัติการจริง
+    const metropolisStations = [
+      { id: 1, x: 220, y: 200, name: "Ribbon Tower", topic: "01. เมนูคำสั่งริบบอน", scenario: "รายงานทางวิชาการจำเป็นต้องแทรกรูปภาพและตารางสรุปผล", instruction: "คลิกสลับไปยังแท็บคำสั่งที่ใช้สำหรับแทรกตารางและภาพ:", type: "ribbon", target: "Insert", options: ["Home", "Insert", "Layout", "View"] },
+      { id: 2, x: 550, y: 200, name: "Save Facility", topic: "02. บันทึกเอกสาร", scenario: "ระบบไฟฟ้าในห้องแล็บเริ่มขัดข้อง เสี่ยงต่อข้อมูลสูญหาย", instruction: "กดปุ่มคีย์ลัดบนแป้นเพื่อบันทึกงาน (Save) ทันที:", type: "keys", target: "Ctrl + S", options: ["Ctrl + C", "Ctrl + S", "Ctrl + Z"] },
+      { id: 3, x: 880, y: 200, name: "Typography Lab", topic: "03. ตกแต่งแบบอักษร", scenario: "หัวข้อรายงานเรียบเกินไป ต้องการเน้นความสำคัญให้เด่นชัด", instruction: "กดเปิดปุ่มเครื่องมือเพื่อปรับข้อความตัวอย่างให้กลายเป็น 'ตัวหนา (Bold)':", type: "toggle_bold" },
+      { id: 4, x: 220, y: 480, name: "Underline Pier", topic: "04. ขีดเส้นใต้ข้อความ", scenario: "ต้องการเน้นย้ำกำหนดการส่งงานในเอกสาร", instruction: "เลือกสัญลักษณ์ที่ทำหน้าที่ขีดเส้นใต้ข้อความ:", type: "ribbon", target: "U", options: ["B", "I", "U", "A"] },
+      { id: 5, x: 550, y: 480, name: "Center Plaza", topic: "05. จัดตำแหน่งย่อหน้า", scenario: "ชื่อเรื่องรายงานยังอยู่ชิดซ้าย ไม่สมดุลกับหน้ากระดาษ", instruction: "กดปุ่มปรับตำแหน่งย่อหน้าให้มาอยู่ 'กึ่งกลางหน้ากระดาษ':", type: "toggle_align" },
+      { id: 6, x: 880, y: 480, name: "List Terminal", topic: "06. รายการลำดับ", scenario: "มีข้อปฏิบัติ 3 ข้อที่ต้องทำตามลำดับก่อน-หลังอย่างเคร่งครัด", instruction: "เลือกรูปแบบรายการที่ถูกต้องสำหรับแสดงลำดับขั้นตอน:", type: "ribbon", target: "Numbering (1,2,3)", options: ["Bullets (จุดกลม)", "Numbering (1,2,3)", "Shapes"] },
+      { id: 7, x: 220, y: 760, name: "Media Park", topic: "07. จัดการรูปภาพ", scenario: "รูปภาพที่แทรกเข้ามาบังตัวหนังสือและเลื่อนตำแหน่งไม่ได้", instruction: "เลือกคำสั่งตัดคำเพื่อปลดล็อกให้ลากย้ายรูปภาพได้อิสระ:", type: "ribbon", target: "Wrap Text", options: ["Crop", "Wrap Text", "Effects"] },
+      { id: 8, x: 550, y: 760, name: "Table Complex", topic: "08. จัดการตาราง", scenario: "ต้องการรวมช่องตาราง 2 ช่องเข้าด้วยกันเป็นช่องเดียว", instruction: "เลือกคำสั่งผสานเซลล์ตารางที่ไฮไลต์:", type: "ribbon", target: "Merge Cells", options: ["Merge Cells", "Split Cells", "Insert Row"] },
+      { id: 9, x: 880, y: 760, name: "Layout Toll", topic: "09. ตั้งค่าหน้ากระดาษ", scenario: "ตารางสถิติมิติกว้างเกินหน้ากระดาษแนวตั้ง", instruction: "เลือกคำสั่งปรับกระดาษเป็นแนวนอน (Landscape):", type: "ribbon", target: "Orientation", options: ["Margins", "Orientation", "Size"] },
+      { id: 10, x: 220, y: 1040, name: "Proofing Lab", topic: "10. ตรวจสอบเอกสาร", scenario: "พบเส้นใต้หยัก 'สีแดง' ใต้ข้อความที่พิมพ์ในรายงาน", instruction: "เส้นหยักสีแดงใน Word แจ้งเตือนเกี่ยวกับสิ่งใด:", type: "ribbon", target: "สะกดคำผิด", options: ["สะกดคำผิด", "เว้นวรรคผิด", "ฟอนต์เพี้ยน"] },
+      { id: 11, x: 550, y: 1040, name: "Print Station", topic: "11. พิมพ์เอกสาร", scenario: "ต้องการสั่งพิมพ์งานออกทางเครื่องพิมพ์ทันที", instruction: "เลือกคีย์ลัดสำหรับเข้าหน้าต่างพิมพ์งาน (Print):", type: "keys", target: "Ctrl + P", options: ["Ctrl + N", "Ctrl + P", "Ctrl + O"] },
+      { id: 12, x: 880, y: 1040, name: "PDF Gateway", topic: "12. ส่งออกเอกสาร", scenario: "จัดทำรายงานเสร็จสิ้น ต้องส่งไฟล์แบบไม่ให้ฟอนต์หรือหน้าเลื่อนหลุด", instruction: "เลือกรูปแบบไฟล์ที่ล็อกหน้ากระดาษและฟอนต์ไม่ให้เพี้ยน:", type: "ribbon", target: ".pdf", options: [".docx", ".txt", ".pdf"] }
     ];
 
-    // 3. CANVAS RPG OVERWORLD & CAR ENGINE
-    const canvas = document.getElementById('cityCanvas');
+    // 3. OVERWORLD ENGINE & SPORTS CAR CONTROLLER
+    const canvas = document.getElementById('worldCanvas');
     const ctx = canvas.getContext('2d');
+    const minimapCanvas = document.getElementById('minimapCanvas');
+    const mCtx = minimapCanvas.getContext('2d');
 
-    const WORLD_W = 1000;
-    const WORLD_H = 1150;
+    const WORLD_W = 1150;
+    const WORLD_H = 1250;
 
-    let player = { x: 500, y: 560, angle: 0, speed: 0, maxSpeed: 4.5 };
-    let camera = { x: 500, y: 560 };
-    let keys = { up: false, down: false, left: false, right: false };
+    let player = {
+      x: 550, y: 620,
+      angle: 0,
+      speed: 0,
+      maxSpeed: 4.8
+    };
+
+    let camera = { x: 550, y: 620 };
     let clearedStations = new Set();
     let score = 0;
-    let lives = 3;
+    let hull = 3;
     let nearStation = null;
     let inLab = false;
     let isRunning = false;
 
-    function resize() {
+    function resizeChassis() {
       canvas.width = canvas.parentElement.clientWidth;
       canvas.height = canvas.parentElement.clientHeight;
+      minimapCanvas.width = minimapCanvas.parentElement.clientWidth;
+      minimapCanvas.height = minimapCanvas.parentElement.clientHeight;
     }
-    window.addEventListener('resize', resize);
-    resize();
+    window.addEventListener('resize', resizeChassis);
+    resizeChassis();
 
-    // ตัวจับสัญญาณปุ่มบนจอ
-    const setPad = (k, v) => { keys[k] = v; if(v) Sfx.click(); };
-    document.getElementById('padUp').addEventListener('pointerdown', () => setPad('up', true));
-    document.getElementById('padUp').addEventListener('pointerup', () => setPad('up', false));
-    document.getElementById('padDown').addEventListener('pointerdown', () => setPad('down', true));
-    document.getElementById('padDown').addEventListener('pointerup', () => setPad('down', false));
-    document.getElementById('padLeft').addEventListener('pointerdown', () => setPad('left', true));
-    document.getElementById('padLeft').addEventListener('pointerup', () => setPad('left', false));
-    document.getElementById('padRight').addEventListener('pointerdown', () => setPad('right', true));
-    document.getElementById('padRight').addEventListener('pointerup', () => setPad('right', false));
+    // Virtual Joystick Logic
+    let joyInput = { x: 0, y: 0, active: false };
+    const analogBase = document.getElementById('analogBase');
+    const analogStick = document.getElementById('analogStick');
+    const joyRadius = 45;
 
-    // ตัวจับสัญญาณคีย์บอร์ด
+    function handleJoy(e) {
+      e.preventDefault();
+      const touch = e.touches ? e.touches[0] : e;
+      const rect = analogBase.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+
+      let dx = touch.clientX - cx;
+      let dy = touch.clientY - cy;
+      let dist = Math.hypot(dx, dy);
+
+      if (dist > joyRadius) {
+        dx = (dx / dist) * joyRadius;
+        dy = (dy / dist) * joyRadius;
+      }
+
+      analogStick.style.transform = `translate(${dx}px, ${dy}px)`;
+      joyInput.x = dx / joyRadius;
+      joyInput.y = dy / joyRadius;
+      joyInput.active = true;
+    }
+
+    function resetJoy() {
+      analogStick.style.transform = `translate(0px, 0px)`;
+      joyInput = { x: 0, y: 0, active: false };
+    }
+
+    analogBase.addEventListener('pointerdown', (e) => { AudioEngine.click(); handleJoy(e); });
+    window.addEventListener('pointermove', (e) => { if (joyInput.active) handleJoy(e); });
+    window.addEventListener('pointerup', resetJoy);
+    window.addEventListener('pointercancel', resetJoy);
+
+    // Keyboard Logic
+    let keys = { w: false, s: false, a: false, d: false };
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'w' || e.key === 'ArrowUp') keys.up = true;
-      if (e.key === 's' || e.key === 'ArrowDown') keys.down = true;
-      if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = true;
-      if (e.key === 'd' || e.key === 'ArrowRight') keys.right = true;
+      if (e.key === 'w' || e.key === 'ArrowUp') keys.w = true;
+      if (e.key === 's' || e.key === 'ArrowDown') keys.s = true;
+      if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = true;
+      if (e.key === 'd' || e.key === 'ArrowRight') keys.d = true;
       if (e.key === ' ' || e.key === 'Enter') triggerEnterLab();
     });
     window.addEventListener('keyup', (e) => {
-      if (e.key === 'w' || e.key === 'ArrowUp') keys.up = false;
-      if (e.key === 's' || e.key === 'ArrowDown') keys.down = false;
-      if (e.key === 'a' || e.key === 'ArrowLeft') keys.left = false;
-      if (e.key === 'd' || e.key === 'ArrowRight') keys.right = false;
+      if (e.key === 'w' || e.key === 'ArrowUp') keys.w = false;
+      if (e.key === 's' || e.key === 'ArrowDown') keys.s = false;
+      if (e.key === 'a' || e.key === 'ArrowLeft') keys.a = false;
+      if (e.key === 'd' || e.key === 'ArrowRight') keys.d = false;
     });
 
-    document.getElementById('btnEnterLab').addEventListener('click', triggerEnterLab);
+    document.getElementById('btnEnter').addEventListener('click', triggerEnterLab);
 
-    function update() {
+    // 4. MAIN RENDERING LOOP & VEHICLE PHYSICS
+    function updatePhysics() {
       if (inLab || !isRunning) return;
 
-      let mx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-      let my = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+      let mx = joyInput.active ? joyInput.x : ((keys.d ? 1 : 0) - (keys.a ? 1 : 0));
+      let my = joyInput.active ? joyInput.y : ((keys.s ? 1 : 0) - (keys.w ? 1 : 0));
       let mag = Math.hypot(mx, my);
 
-      if (mag > 0) {
+      if (mag > 0.15) {
         let targetAngle = Math.atan2(my, mx);
         let diff = targetAngle - player.angle;
         while (diff < -Math.PI) diff += Math.PI * 2;
         while (diff > Math.PI) diff -= Math.PI * 2;
-        player.angle += diff * 0.2;
-        player.speed += (player.maxSpeed - player.speed) * 0.15;
+        player.angle += diff * 0.18;
+
+        player.speed += (player.maxSpeed - player.speed) * 0.14;
       } else {
-        player.speed *= 0.82;
+        player.speed *= 0.84;
       }
 
       player.x += Math.cos(player.angle) * player.speed;
@@ -222,30 +578,25 @@
       player.x = Math.max(40, Math.min(WORLD_W - 40, player.x));
       player.y = Math.max(40, Math.min(WORLD_H - 40, player.y));
 
-      // Camera Lerp
       camera.x += (player.x - camera.x) * 0.08;
       camera.y += (player.y - camera.y) * 0.08;
 
-      // ตรวจสอบระยะจอดเทียบตึก
       nearStation = null;
-      stations.forEach(st => {
+      metropolisStations.forEach(st => {
         let d = Math.hypot(player.x - st.x, player.y - st.y);
-        if (d < 55) nearStation = st;
+        if (d < 58) nearStation = st;
       });
 
-      const enterBtn = document.getElementById('btnEnterLab');
-      if (nearStation) {
-        enterBtn.style.opacity = '1';
-        enterBtn.style.pointerEvents = 'auto';
-      } else {
-        enterBtn.style.opacity = '0.4';
-        enterBtn.style.pointerEvents = 'none';
-      }
+      const actBtn = document.getElementById('btnEnter');
+      if (nearStation) actBtn.classList.add('active');
+      else actBtn.classList.remove('active');
     }
 
-    function draw() {
+    let radarTick = 0;
+
+    function renderWorld() {
       if (!isRunning) return;
-      update();
+      updatePhysics();
 
       const w = canvas.width;
       const h = canvas.height;
@@ -255,267 +606,295 @@
       ctx.save();
       ctx.translate(w / 2 - camera.x, h / 2 - camera.y);
 
-      // พื้นเมือง
-      ctx.fillStyle = '#0f172a';
+      // ผิวพื้นโลกมืด Asphalt
+      ctx.fillStyle = '#060a12';
       ctx.fillRect(0, 0, WORLD_W, WORLD_H);
 
-      // ถนนคอนกรีตเชื่อมโยง
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 56;
+      // เส้นทางถนน Grid Highway
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 64;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
+
       ctx.beginPath();
-      ctx.moveTo(200, 180); ctx.lineTo(800, 180);
-      ctx.lineTo(800, 960); ctx.lineTo(200, 960);
+      ctx.moveTo(220, 200); ctx.lineTo(880, 200);
+      ctx.lineTo(880, 1040); ctx.lineTo(220, 1040);
       ctx.closePath();
-      ctx.moveTo(200, 440); ctx.lineTo(800, 440);
-      ctx.moveTo(200, 700); ctx.lineTo(800, 700);
-      ctx.moveTo(500, 180); ctx.lineTo(500, 960);
+      ctx.moveTo(220, 480); ctx.lineTo(880, 480);
+      ctx.moveTo(220, 760); ctx.lineTo(880, 760);
+      ctx.moveTo(550, 200); ctx.lineTo(550, 1040);
       ctx.stroke();
 
-      // เส้นประถนน
-      ctx.strokeStyle = '#ff9f43';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([14, 14]);
+      // ขอบทางนีออน & เส้นแบ่งเลน
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([14, 16]);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // วาดสถานีทั้ง 12 แห่ง
-      stations.forEach(st => {
+      radarTick += 0.04;
+
+      // เรนเดอร์ 12 อาคารแล็บสถาปัตยกรรม Sci-Fi
+      metropolisStations.forEach(st => {
         const isDone = clearedStations.has(st.id);
         const isNear = nearStation && nearStation.id === st.id;
 
-        // ตัวอาคาร
-        ctx.fillStyle = isDone ? '#10ac84' : (isNear ? '#00f2fe' : '#1e3a8a');
+        // วงแหวนสัญญาณเรดาร์หมุนรอบอาคาร
+        ctx.strokeStyle = isDone ? '#10b981' : (isNear ? '#00f2fe' : 'rgba(0, 242, 254, 0.2)');
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.roundRect(st.x - 34, st.y - 34, 68, 68, 10);
-        ctx.fill();
+        ctx.arc(st.x, st.y, 44 + Math.sin(radarTick) * 3, 0, Math.PI * 2);
+        ctx.stroke();
 
-        // หลังคา
-        ctx.fillStyle = '#0a192f';
+        // ตัวอาคารหลัก
+        ctx.fillStyle = isDone ? '#065f46' : (isNear ? '#0369a1' : '#0f172a');
+        ctx.strokeStyle = isDone ? '#10b981' : (isNear ? '#00f2fe' : '#1e293b');
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(st.x - 36, st.y - 36, 72, 72, 10);
+        ctx.fill();
+        ctx.stroke();
+
+        // ดาดฟ้าชั้นใน
+        ctx.fillStyle = '#020617';
         ctx.fillRect(st.x - 26, st.y - 26, 52, 52);
 
-        // เสาไฟแสดงสถานะ
-        ctx.fillStyle = isDone ? '#10ac84' : '#ff9f43';
+        // เสาสัญญาณ Beacon ตรงกลางตึก
+        ctx.fillStyle = isDone ? '#10b981' : (isNear ? '#f59e0b' : '#ef4444');
         ctx.beginPath();
         ctx.arc(st.x, st.y, 12, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 12px Chakra Petch';
+        // รหัสตึก
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 12px Orbitron';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(st.id, st.x, st.y);
 
+        // ป้ายชื่อตึก
         ctx.fillStyle = '#cbd5e1';
-        ctx.font = 'bold 11px Kanit';
-        ctx.fillText(st.name, st.x, st.y + 45);
+        ctx.font = '600 11px Kanit';
+        ctx.fillText(st.name, st.x, st.y + 48);
       });
 
-      // วาดรถสปอร์ต Procedural คุณภาพสูง
+      // เรนเดอร์ตัวรถสปอร์ต Procedural GT
       ctx.save();
       ctx.translate(player.x, player.y);
       ctx.rotate(player.angle);
 
-      // เงารถ
-      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      // เงารถ Soft Ambient Occlusion
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
       ctx.beginPath();
-      ctx.ellipse(0, 0, 20, 11, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 24, 14, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // แสงไฟหน้าสาดลงพื้น
-      const light = ctx.createRadialGradient(16, 0, 2, 40, 0, 28);
-      light.addColorStop(0, 'rgba(0,242,254,0.35)');
-      light.addColorStop(1, 'rgba(0,242,254,0)');
-      ctx.fillStyle = light;
+      // ไฟหน้าโปรเจกเตอร์สองดวงสาดลงถนน
+      const headlight = ctx.createRadialGradient(20, 0, 4, 60, 0, 36);
+      headlight.addColorStop(0, 'rgba(0, 242, 254, 0.45)');
+      headlight.addColorStop(1, 'rgba(0, 242, 254, 0)');
+      ctx.fillStyle = headlight;
       ctx.beginPath();
-      ctx.moveTo(14, -8); ctx.lineTo(48, -20); ctx.lineTo(48, 20); ctx.lineTo(14, 8);
+      ctx.moveTo(18, -10); ctx.lineTo(68, -24); ctx.lineTo(68, 24); ctx.lineTo(18, 10);
       ctx.fill();
 
-      // บอดี้รถสปอร์ตสีแดง
-      ctx.fillStyle = '#ee5253';
+      // ตัวถังรถสปอร์ต GT แดง-ดำ
+      ctx.fillStyle = '#ef4444';
       ctx.beginPath();
-      ctx.roundRect(-16, -10, 32, 20, 5);
+      ctx.roundRect(-20, -12, 40, 24, 6);
       ctx.fill();
 
-      // กระจกหน้า
-      ctx.fillStyle = '#0f172a';
-      ctx.fillRect(-2, -7, 10, 14);
+      // ห้องโดยสารกระจกรมดำ
+      ctx.fillStyle = '#090d16';
+      ctx.beginPath();
+      ctx.roundRect(-6, -9, 14, 18, 4);
+      ctx.fill();
 
-      // ไฟท้ายนีออน
-      ctx.fillStyle = '#ff9f43';
-      ctx.fillRect(-16, -8, 2, 4);
-      ctx.fillRect(-16, 4, 2, 4);
+      // สปอยเลอร์หลัง Matte Black
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(-20, -11, 5, 22);
+
+      // ไฟท้าย LED Bar สว่างวาบ
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(-20, -9, 2, 4);
+      ctx.fillRect(-20, 5, 2, 4);
 
       ctx.restore();
 
       ctx.restore();
 
-      requestAnimationFrame(draw);
+      renderMinimapRadar();
+
+      requestAnimationFrame(renderWorld);
     }
 
-    // 4. HANDS-ON MISSION LOGIC
-    let currentTaskInput = null;
+    function renderMinimapRadar() {
+      const mw = minimapCanvas.width;
+      const mh = minimapCanvas.height;
+      mCtx.clearRect(0, 0, mw, mh);
+
+      const sx = mw / WORLD_W;
+      const sy = mh / WORLD_H;
+
+      metropolisStations.forEach(st => {
+        mCtx.fillStyle = clearedStations.has(st.id) ? '#10b981' : '#00f2fe';
+        mCtx.fillRect(st.x * sx - 2, st.y * sy - 2, 4, 4);
+      });
+
+      mCtx.fillStyle = '#ef4444';
+      mCtx.beginPath();
+      mCtx.arc(player.x * sx, player.y * sy, 3, 0, Math.PI * 2);
+      mCtx.fill();
+    }
+
+    // 5. HANDS-ON MISSION LAB
+    let selectedMissionTask = null;
 
     function triggerEnterLab() {
       if (!nearStation || inLab) return;
       inLab = true;
-      Sfx.click();
+      AudioEngine.click();
 
       const st = nearStation;
       document.getElementById('modalTopic').innerText = st.topic;
-      document.getElementById('modalName').innerText = st.name;
-      document.getElementById('modalStationNum').innerText = `STATION ${st.id}`;
+      document.getElementById('modalStationTitle').innerText = `${st.id}. ${st.name}`;
+      document.getElementById('modalCode').innerText = `LAB-0${st.id}`;
       document.getElementById('modalScenario').innerText = st.scenario;
-      document.getElementById('modalPrompt').innerText = st.prompt;
-      document.getElementById('aiBox').style.display = 'none';
+      document.getElementById('modalInstruction').innerText = st.instruction;
 
       const area = document.getElementById('modalInteractiveArea');
       area.innerHTML = '';
-      currentTaskInput = null;
+      selectedMissionTask = null;
 
       if (st.type === 'ribbon' || st.type === 'keys') {
         const wrap = document.createElement('div');
-        wrap.style.display = 'flex';
-        wrap.style.flexDirection = 'column';
+        wrap.style.display = 'grid';
+        wrap.style.gridTemplateColumns = '1fr';
         wrap.style.gap = '8px';
 
         st.options.forEach(opt => {
           const btn = document.createElement('button');
+          btn.className = 'software-btn';
           btn.style.padding = '12px 16px';
-          btn.style.background = '#f8fafc';
-          btn.style.border = '2px solid #cbd5e1';
-          btn.style.borderRadius = '8px';
-          btn.style.textAlign = 'left';
-          btn.style.fontSize = '0.95rem';
-          btn.style.fontWeight = '600';
-          btn.style.color = '#334155';
-          btn.style.cursor = 'pointer';
           btn.innerText = opt;
           btn.onclick = () => {
-            Sfx.click();
-            wrap.querySelectorAll('button').forEach(b => {
-              b.style.background = '#f8fafc';
-              b.style.borderColor = '#cbd5e1';
-              b.style.color = '#334155';
-            });
-            btn.style.background = '#005a9e';
-            btn.style.borderColor = '#003a66';
-            btn.style.color = '#fff';
-            currentTaskInput = opt;
+            AudioEngine.click();
+            wrap.querySelectorAll('.software-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedMissionTask = opt;
           };
           wrap.appendChild(btn);
         });
         area.appendChild(wrap);
       } else if (st.type === 'toggle_bold' || st.type === 'toggle_align') {
-        const toolbar = document.createElement('div');
-        toolbar.style.display = 'flex';
-        toolbar.style.gap = '8px';
-        toolbar.style.marginBottom = '12px';
+        const frame = document.createElement('div');
+        frame.className = 'software-frame';
+
+        const ribbon = document.createElement('div');
+        ribbon.className = 'software-ribbon';
 
         const bBtn = document.createElement('button');
-        bBtn.style.padding = '8px 14px';
-        bBtn.style.border = '1px solid #94a3b8';
-        bBtn.style.borderRadius = '6px';
-        bBtn.style.background = '#fff';
-        bBtn.style.fontWeight = '700';
-        bBtn.innerText = 'B (ตัวหนา)';
+        bBtn.className = 'software-btn';
+        bBtn.innerHTML = '<strong>B</strong> ตัวหนา';
 
         const cBtn = document.createElement('button');
-        cBtn.style.padding = '8px 14px';
-        cBtn.style.border = '1px solid #94a3b8';
-        cBtn.style.borderRadius = '6px';
-        cBtn.style.background = '#fff';
-        cBtn.style.fontWeight = '700';
-        cBtn.innerText = '≡ (กึ่งกลาง)';
+        cBtn.className = 'software-btn';
+        cBtn.innerHTML = '≡ กึ่งกลาง';
 
-        toolbar.appendChild(bBtn);
-        toolbar.appendChild(cBtn);
+        ribbon.appendChild(bBtn);
+        ribbon.appendChild(cBtn);
 
-        const sheet = document.createElement('div');
-        sheet.style.padding = '16px';
-        sheet.style.border = '1px solid #cbd5e1';
-        sheet.style.borderRadius = '6px';
-        sheet.style.minHeight = '90px';
-        sheet.style.background = '#fff';
-        const txt = document.createElement('div');
-        txt.innerText = 'รายงานวิชาคอมพิวเตอร์และเทคโนโลยี ม.1';
-        sheet.appendChild(txt);
+        const page = document.createElement('div');
+        page.className = 'software-page';
+        const docText = document.createElement('div');
+        docText.innerText = 'รายงานวิชาคอมพิวเตอร์และเทคโนโลยี ม.1';
+        page.appendChild(docText);
 
         bBtn.onclick = () => {
-          Sfx.click();
-          let isBold = txt.style.fontWeight === '700';
-          txt.style.fontWeight = isBold ? '400' : '700';
-          bBtn.style.background = isBold ? '#fff' : '#005a9e';
-          bBtn.style.color = isBold ? '#000' : '#fff';
-          if (st.type === 'toggle_bold') currentTaskInput = isBold ? null : 'bold';
+          AudioEngine.click();
+          bBtn.classList.toggle('active');
+          let isB = bBtn.classList.contains('active');
+          docText.style.fontWeight = isB ? '700' : '400';
+          if (st.type === 'toggle_bold') selectedMissionTask = isB ? 'bold' : null;
         };
 
         cBtn.onclick = () => {
-          Sfx.click();
-          let isCenter = txt.style.textAlign === 'center';
-          txt.style.textAlign = isCenter ? 'left' : 'center';
-          cBtn.style.background = isCenter ? '#fff' : '#005a9e';
-          cBtn.style.color = isCenter ? '#000' : '#fff';
-          if (st.type === 'toggle_align') currentTaskInput = isCenter ? null : 'center';
+          AudioEngine.click();
+          cBtn.classList.toggle('active');
+          let isC = cBtn.classList.contains('active');
+          docText.style.textAlign = isC ? 'center' : 'left';
+          if (st.type === 'toggle_align') selectedMissionTask = isC ? 'center' : null;
         };
 
-        area.appendChild(toolbar);
-        area.appendChild(sheet);
+        frame.appendChild(ribbon);
+        frame.appendChild(page);
+        area.appendChild(frame);
       }
 
-      document.getElementById('missionModal').style.display = 'flex';
+      document.getElementById('labModal').style.display = 'flex';
     }
 
     document.getElementById('btnSubmitLab').onclick = () => {
       const st = nearStation;
-      const isCorrect = (currentTaskInput === st.target || currentTaskInput === 'bold' || currentTaskInput === 'center');
+      const isCorrect = (selectedMissionTask === st.target || selectedMissionTask === 'bold' || selectedMissionTask === 'center');
 
       if (isCorrect) {
-        Sfx.pass();
+        AudioEngine.pass();
         if (!clearedStations.has(st.id)) {
           clearedStations.add(st.id);
           score++;
         }
         updateHud();
-        document.getElementById('missionModal').style.display = 'none';
+        document.getElementById('labModal').style.display = 'none';
         inLab = false;
 
-        if (clearedStations.size >= stations.length) {
-          endGame();
+        if (clearedStations.size >= metropolisStations.length) {
+          concludeGame();
         }
       } else {
-        Sfx.fail();
-        lives = Math.max(0, lives - 1);
+        AudioEngine.fail();
+        hull = Math.max(0, hull - 1);
         updateHud();
-        document.getElementById('aiText').innerText = st.hint;
-        document.getElementById('aiBox').style.display = 'block';
+
+        // ตอบผิดตัดพลังงานทันที ไม่มีข้อความเฉลย
+        if (hull <= 0) {
+          alert("พลังงานหมด กรุณาเริ่มทบทวนใหม่อีกครั้ง");
+          location.reload();
+        } else {
+          document.getElementById('labModal').style.display = 'none';
+          inLab = false;
+        }
       }
     };
 
     function updateHud() {
-      document.getElementById('hudStation').innerText = `${clearedStations.size}/12`;
+      document.getElementById('hudCleared').innerText = `${clearedStations.size}/12`;
       document.getElementById('hudScore').innerText = score;
-      document.getElementById('hudLife').innerText = '❤️'.repeat(Math.max(0, lives));
+
+      const blocks = document.querySelectorAll('.hull-block');
+      blocks.forEach((b, idx) => {
+        if (idx < hull) b.classList.remove('dead');
+        else b.classList.add('dead');
+      });
     }
 
-    function endGame() {
+    function concludeGame() {
       isRunning = false;
-      document.getElementById('endScreen').style.display = 'flex';
+      document.getElementById('endCurtain').style.display = 'flex';
       const pct = ((score / 12) * 100).toFixed(2);
-      document.getElementById('finalScore').innerText = `${score} / 12`;
-      document.getElementById('finalPct').innerText = `ประสิทธิภาพ E1 = ${pct}%`;
+      document.getElementById('finalScoreVal').innerText = `${score} / 12`;
+      document.getElementById('finalPctVal').innerText = `ประสิทธิภาพ E1 = ${pct}%`;
     }
 
-    function bootGame() {
-      Sfx.init();
-      document.getElementById('startScreen').style.display = 'none';
+    function bootEngine() {
+      AudioEngine.init();
+      document.getElementById('startCurtain').style.display = 'none';
       clearedStations.clear();
       score = 0;
-      lives = 3;
+      hull = 3;
       isRunning = true;
       updateHud();
-      draw();
+      renderWorld();
     }
   </script>
 </body>
