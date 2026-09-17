@@ -3,38 +3,1180 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Word Nitro Racer - Cyber Arcade Edition</title>
+  <title>Word Road Mission - Arcade Turbo Edition (E1)</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Kanit:wght@300;400;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;800&family=Kanit:wght@300;400;600;700&display=swap');
 
     :root {
-      --neon-blue: #00d2d3;
-      --neon-pink: #ff3838;
-      --neon-yellow: #ff9f43;
-      --cyber-bg: #070b14;
-      --panel-bg: #0f172a;
-      --word-primary: #0f6cbd;
+      --primary-neon: #00f0ff;
+      --accent-pink: #ff007f;
+      --accent-yellow: #ffe600;
+      --bg-dark: #090a10;
+      --hud-card: #121526;
+      --border-glow: #1e2648;
+      --word-blue: #0066ff;
+      --success: #00ff88;
+      --danger: #ff3366;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      user-select: none;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      touch-action: manipulation;
       font-family: 'Kanit', sans-serif;
     }
 
     body {
-      background: radial-gradient(circle at center, #182848 0%, #050811 100%);
+      background: radial-gradient(circle at center, #181d36 0%, #05060a 100%);
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 8px;
+      padding: 12px;
       overflow-x: hidden;
-      color: #fff;
+      color: #f1f2f6;
     }
+
+    /* Screen Shake Animation */
+    .shake {
+      animation: shakeAnim 0.35s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shakeAnim {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(4px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+      40%, 60% { transform: translate3d(6px, 0, 0); }
+    }
+
+    /* Game Console Chassis */
+    .game-console {
+      width: 100%;
+      max-width: 720px;
+      background: var(--hud-card);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 2px solid #232d56;
+      box-shadow: 0 0 50px rgba(0, 240, 255, 0.15), 0 20px 50px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Progress Bar */
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: #11162b;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--primary-neon), var(--accent-pink));
+      box-shadow: 0 0 12px var(--primary-neon);
+      transition: width 0.4s ease;
+    }
+
+    /* HUD Top Header */
+    .hud-header {
+      background: rgba(10, 13, 26, 0.95);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1e284a;
+      font-family: 'Chakra Petch', sans-serif;
+    }
+
+    .hud-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary-neon);
+      text-shadow: 0 0 10px rgba(0,240,255,0.5);
+    }
+
+    .hud-metrics {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .badge-metric {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .combo-badge {
+      background: linear-gradient(135deg, var(--accent-pink), #b000ff);
+      color: #fff;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      display: none;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Canvas Viewport */
+    .viewport-canvas {
+      width: 100%;
+      height: 140px;
+      background: var(--bg-dark);
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas#roadCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Floating Score Popups Container */
+    #fxLayer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .floating-text {
+      position: absolute;
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--accent-yellow);
+      text-shadow: 0 0 10px rgba(255, 230, 0, 0.8), 2px 2px 0 #000;
+      animation: floatUp 0.8s ease-out forwards;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0) scale(0.8); }
+      50% { transform: translateY(-20px) scale(1.2); }
+      100% { opacity: 0; transform: translateY(-40px) scale(1); }
+    }
+
+    /* Mission Playground Viewport */
+    .mission-viewport {
+      padding: 22px;
+      min-height: 440px;
+      background: #f8fafc;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-top: 3px solid var(--word-blue);
+      position: relative;
+    }
+
+    .stage-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e0f2fe;
+      color: #0284c7;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .station-heading {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .briefing-card {
+      font-size: 0.95rem;
+      color: #475569;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    /* Interactive Ribbon Simulation */
+    .sim-ribbon-window {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .ribbon-tabs {
+      background: #f1f5f9;
+      display: flex;
+      padding: 8px 10px 0;
+      gap: 4px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .tab-item {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .tab-item:hover { background: #e2e8f0; }
+    .tab-item.active {
+      background: #ffffff;
+      color: var(--word-blue);
+      border: 1px solid #cbd5e1;
+      border-bottom-color: #ffffff;
+      font-weight: 700;
+    }
+
+    .ribbon-toolbar {
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #ffffff;
+      min-height: 56px;
+    }
+
+    .sim-tool-btn {
+      min-width: 42px;
+      height: 42px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sim-tool-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
+    .sim-tool-btn:active, .sim-tool-btn.pressed {
+      background: var(--word-blue);
+      color: #ffffff;
+      border-color: #004578;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .paper-canvas {
+      margin: 12px;
+      padding: 18px;
+      background: #ffffff;
+      border: 2px dashed #e2e8f0;
+      border-radius: 10px;
+      min-height: 85px;
+      font-size: 1.05rem;
+      transition: all 0.25s ease;
+      color: #1e293b;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    /* Drag & Drop Rack */
+    .drag-interactive-rack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .magnetic-slot {
+      border: 2px dashed #3b82f6;
+      background: #eff6ff;
+      border-radius: 16px;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #3b82f6;
+      padding: 10px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: inset 0 2px 8px rgba(59, 130, 246, 0.05);
+    }
+    .magnetic-slot.snapped {
+      border-style: solid;
+      border-color: #10b981;
+      background: #ecfdf5;
+      color: #047857;
+      font-size: 1.15rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+
+    .tokens-source {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .token-chip {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-bottom: 4px solid #94a3b8;
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .token-chip:hover { transform: translateY(-2px); border-color: #94a3b8; }
+    .token-chip:active {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+    }
+
+    /* Choice Buttons Grid */
+    .fast-options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .tactile-btn {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-bottom: 4px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1e293b;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s;
+    }
+    .tactile-btn:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+    .tactile-btn:active {
+      transform: translateY(2px);
+      border-bottom-width: 1px;
+    }
+    .tactile-btn.success {
+      background: #ecfdf5 !important;
+      border-color: #10b981 !important;
+      color: #047857 !important;
+    }
+    .tactile-btn.fail {
+      background: #fef2f2 !important;
+      border-color: #ef4444 !important;
+      color: #b91c1c !important;
+    }
+
+    /* AI Copilot Terminal Bar */
+    .ai-copilot-module {
+      background: #0f172a;
+      color: #f1f2f6;
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: none;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.9rem;
+      border-left: 4px solid var(--primary-neon);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .ai-copilot-module.active { display: flex; }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Certificate Screen */
+    .certificate-chassis {
+      background: linear-gradient(145deg, #0f172a, #1e293b);
+      border: 2px solid #f59e0b;
+      color: #fff;
+      border-radius: 24px;
+      padding: 28px 24px;
+      text-align: center;
+      position: relative;
+      margin-bottom: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 30px rgba(245, 158, 11, 0.2);
+    }
+
+    .btn-warp {
+      background: linear-gradient(90deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      padding: 18px 36px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .btn-warp:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5); }
+    .btn-warp:active { transform: translateY(1px); }
+
+    canvas#confettiCanvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 99;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-console" id="consoleContainer">
+    <!-- Progress Line -->
+    <div class="progress-track">
+      <div class="progress-fill" id="progressBar"></div>
+    </div>
+
+    <!-- HUD Header -->
+    <div class="hud-header">
+      <div class="hud-title">
+        <span>⚡ WORD ROAD</span>
+        <span style="font-size: 0.75rem; color: #64748b; font-weight: 500;">// TURBO E1</span>
+      </div>
+      <div class="hud-metrics">
+        <div class="combo-badge" id="comboBadge">2X COMBO!</div>
+        <div class="badge-metric" style="color: var(--primary-neon);">CP: <span id="metricCp">1</span>/12</div>
+        <div class="badge-metric" style="color: var(--accent-yellow);">⭐ <span id="metricScore">0</span></div>
+        <div class="badge-metric" id="metricHp">❤️❤️❤️</div>
+      </div>
+    </div>
+
+    <!-- Arcade Canvas Viewport -->
+    <div class="viewport-canvas">
+      <div id="fxLayer"></div>
+      <canvas id="roadCanvas"></canvas>
+    </div>
+
+    <!-- Interactive Mission Area -->
+    <div class="mission-viewport" id="missionChamber">
+      <div>
+        <div class="stage-indicator" id="stageTypeLabel">🚀 CHECKPOINT MISSION</div>
+        <h2 class="station-heading" id="stationHeadline">เตรียมออกสตาร์ท...</h2>
+        <p class="briefing-card" id="stationBriefing">ระบบกำลังตรวจสอบความพร้อมของระบบขับเคลื่อนและเอกสาร</p>
+
+        <div id="runtimeInteraction"></div>
+      </div>
+
+      <!-- AI Copilot Card -->
+      <div class="ai-copilot-module" id="aiFeedbackBar">
+        <span style="font-size: 1.5rem;">🤖</span>
+        <div>
+          <div style="font-weight: 700; color: var(--primary-neon); margin-bottom: 2px;">AI Assistant Feedback:</div>
+          <div id="aiFeedbackLog" style="line-height: 1.4; color: #cbd5e1;">พร้อมวิเคราะห์ข้อมูลความเข้าใจ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Victory Certificate Screen -->
+    <div class="mission-viewport" id="celebrationChamber" style="display: none; text-align: center;">
+      <canvas id="confettiCanvas"></canvas>
+      <h2 style="color: #0f172a; margin-bottom: 6px; font-weight: 800; font-size: 1.6rem;">🏆 พิชิตครบ 12 Checkpoints!</h2>
+      <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 18px;">ผู้เรียนผ่านการฝึกฝนและประเมินผลระหว่างเรียนเสร็จสิ้นสมบูรณ์</p>
+
+      <div class="certificate-chassis">
+        <div style="font-size: 0.8rem; letter-spacing: 2px; color: #f59e0b; font-weight: 800;">OFFICIAL CERTIFICATION</div>
+        <h3 style="font-size: 1.8rem; margin: 8px 0; color: #ffffff; font-weight: 800;">MS WORD ROAD MASTER</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8;">ผลการประเมินประสิทธิภาพระหว่างเรียน (E1)</p>
+        <div style="font-size: 3.2rem; font-weight: 800; color: var(--success); margin: 10px 0; font-family: 'Chakra Petch';" id="scoreDisplaySummary">12 / 12</div>
+        <div style="font-size: 1rem; color: #f1f2f6; font-weight: 600;" id="percentageSummary">ประสิทธิภาพ E1 = 100%</div>
+      </div>
+
+      <button class="btn-warp" onclick="restartOrWarp()">
+        เข้าสู่สนามสอบ Word Jump (E2) 🦘
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. ENHANCED WEB AUDIO SYNTHESIZER
+    // ==========================================
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      tone(freq, type, duration, gainVal = 0.1) {
+        try {
+          this.init();
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e) {}
+      },
+      playSuccess(combo = 1) {
+        const baseFreq = 440 + (combo * 60);
+        this.tone(baseFreq, 'triangle', 0.1, 0.12);
+        setTimeout(() => this.tone(baseFreq * 1.25, 'triangle', 0.12, 0.12), 80);
+        setTimeout(() => this.tone(baseFreq * 1.5, 'triangle', 0.25, 0.15), 160);
+      },
+      playFail() {
+        this.tone(180, 'sawtooth', 0.15, 0.15);
+        setTimeout(() => this.tone(130, 'sawtooth', 0.3, 0.15), 120);
+      },
+      playClick() {
+        this.tone(800, 'sine', 0.04, 0.05);
+      }
+    };
+
+    // Unlock audio context on any first user tap
+    window.addEventListener('pointerdown', () => AudioEngine.init(), { once: true });
+
+    // ==========================================
+    // 2. SYNTHWAVE / ARCADE ROAD CANVAS ENGINE
+    // ==========================================
+    const CanvasEngine = {
+      canvas: document.getElementById('roadCanvas'),
+      ctx: null,
+      roadOffset: 0,
+      carX: 0.1,
+      targetX: 0.1,
+      particles: [],
+      lightPillars: [],
+
+      init() {
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        for(let i = 0; i < 6; i++) {
+          this.lightPillars.push({ z: i * 0.16 });
+        }
+        this.render();
+      },
+
+      resize() {
+        this.canvas.width = this.canvas.offsetWidth;
+        this.canvas.height = this.canvas.offsetHeight;
+      },
+
+      render() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Synthwave Horizon Gradient
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+        bgGrad.addColorStop(0, '#060814');
+        bgGrad.addColorStop(0.55, '#121833');
+        bgGrad.addColorStop(0.56, '#ff007f');
+        bgGrad.addColorStop(0.58, '#0a0d1a');
+        bgGrad.addColorStop(1, '#050711');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Grid Lines Horizon Effect
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.15)';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < w; x += 30) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(w * 0.5 + (x - w * 0.5) * 0.2, h * 0.56);
+          ctx.stroke();
+        }
+
+        // Road Surface Perspective
+        ctx.fillStyle = '#0f1428';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.42, h * 0.56);
+        ctx.lineTo(w * 0.58, h * 0.56);
+        ctx.lineTo(w * 0.98, h);
+        ctx.lineTo(w * 0.02, h);
+        ctx.closePath();
+        ctx.fill();
+
+        // Neon Edges
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.42, h * 0.56);
+        ctx.lineTo(w * 0.02, h);
+        ctx.moveTo(w * 0.58, h * 0.56);
+        ctx.lineTo(w * 0.98, h);
+        ctx.stroke();
+
+        // Animated Center Dashes
+        this.roadOffset = (this.roadOffset + 3.5) % 40;
+        ctx.strokeStyle = '#ff007f';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([18, 16]);
+        ctx.lineDashOffset = -this.roadOffset;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.5, h * 0.56);
+        ctx.lineTo(w * 0.5, h);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Passing Neon Light Pillars
+        this.lightPillars.forEach(p => {
+          p.z -= 0.015;
+          if (p.z <= 0) p.z += 1;
+          const scale = 1 - p.z;
+          const lx = w * 0.5 - (w * 0.45 * scale);
+          const rx = w * 0.5 + (w * 0.45 * scale);
+          const ly = h * 0.56 + (h * 0.44 * scale);
+          const pHeight = 24 * scale;
+
+          ctx.fillStyle = '#00f0ff';
+          ctx.fillRect(lx - 2, ly - pHeight, 4, pHeight);
+          ctx.fillRect(rx - 2, ly - pHeight, 4, pHeight);
+        });
+
+        // Car Smooth Lerp Movement & Sway
+        const prevX = this.carX;
+        this.carX += (this.targetX - this.carX) * 0.09;
+        const tilt = (this.carX - prevX) * 25; // Tilt on turning
+
+        const drawCarX = w * this.carX;
+        const drawCarY = h * 0.78;
+
+        // Exhaust Particles
+        if (Math.random() < 0.6) {
+          this.particles.push({
+            x: drawCarX - 12,
+            y: drawCarY + 6,
+            r: 3,
+            alpha: 0.8,
+            color: Math.random() > 0.5 ? '#ff007f' : '#00f0ff'
+          });
+        }
+
+        this.particles.forEach((p, i) => {
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          p.x -= 2;
+          p.y -= 0.3;
+          p.r += 0.25;
+          p.alpha -= 0.04;
+          if (p.alpha <= 0) this.particles.splice(i, 1);
+        });
+
+        // Cyberpunk Car Render
+        ctx.save();
+        ctx.translate(drawCarX, drawCarY);
+        ctx.rotate((tilt * Math.PI) / 180);
+
+        // Underglow Shadow
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(0, 8, 28, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Car Body
+        ctx.fillStyle = '#0a0f24';
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(-24, -12, 48, 20, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        // Windshield
+        ctx.fillStyle = '#ff007f';
+        ctx.beginPath();
+        ctx.roundRect(-10, -10, 22, 9, 3);
+        ctx.fill();
+
+        // Headlights Beam
+        ctx.fillStyle = '#ffe600';
+        ctx.fillRect(22, -6, 4, 4);
+        ctx.fillRect(22, 2, 4, 4);
+
+        ctx.restore();
+
+        requestAnimationFrame(() => this.render());
+      },
+
+      setCarProgress(ratio) {
+        this.targetX = 0.08 + (ratio * 0.82);
+      }
+    };
+
+    // ==========================================
+    // 3. CHECKPOINTS DATABASE
+    // ==========================================
+    const checkpoints = [
+      {
+        cp: 1,
+        mode: "ribbon",
+        title: "รู้จักแถบเครื่องมือ Ribbon",
+        brief: "แตะเลือก 'แท็บเมนู' ด้านบนที่ใช้สำหรับการเพิ่ม รูปภาพ และ ตาราง ลงในเอกสาร",
+        tabs: ["หน้าแรก (Home)", "แทรก (Insert)", "เค้าโครง (Layout)", "มุมมอง (View)"],
+        targetTab: "แทรก (Insert)",
+        hint: "แท็บ Insert (แทรก) คือหมวดหมู่ที่รวบรวมคำสั่งสำหรับเพิ่มองค์ประกอบภายนอกทั้งหมด"
+      },
+      {
+        cp: 2,
+        mode: "drag",
+        title: "Save Station (เซฟงานฉุกเฉิน)",
+        brief: "ลากหรือแตะคีย์ลัดที่ถูกต้องเพื่อ Save ข้อมูลอย่างรวดเร็วก่อนระบบตัดไฟ",
+        slotText: "นำคีย์ลัดบันทึกงานมาใส่ที่นี่",
+        tokens: ["Ctrl + Z", "Ctrl + S", "Ctrl + C"],
+        answer: "Ctrl + S",
+        hint: "Ctrl + S ย่อมาจาก Save ใช้สำหรับบันทึกงานลงในแฟ้มเอกสาร"
+      },
+      {
+        cp: 3,
+        mode: "format_bold",
+        title: "Format Garage (เน้นหัวข้อตัวหนา)",
+        brief: "ทดลองเปิดใช้งานปุ่มสัญลักษณ์ B บนแถบเครื่องมือ เพื่อทำให้ข้อความกลายเป็น 'ตัวหนา'",
+        targetAction: "bold",
+        hint: "ปุ่ม B (Bold) ทำหน้าที่เพิ่มความหนาให้กับตัวหนังสือเพื่อเน้นความสำคัญ"
+      },
+      {
+        cp: 4,
+        mode: "choice",
+        title: "สะพานความเร็ว (ขีดเส้นใต้)",
+        brief: "ต้องการขีดเส้นใต้ข้อความสำคัญเพื่อเน้นย้ำ ต้องกดคำสั่งใด?",
+        options: ["ปุ่ม B (Bold)", "ปุ่ม I (Italic)", "ปุ่ม U (Underline)", "ปุ่ม Strikethrough"],
+        answer: 2,
+        hint: "ปุ่ม U ย่อมาจาก Underline มีขีดเส้นใต้กำกับที่ตัวอักษรชัดเจน"
+      },
+      {
+        cp: 5,
+        mode: "format_align",
+        title: "จัดตำแหน่งย่อหน้ากึ่งกลาง",
+        brief: "แตะปุ่มจัดตำแหน่ง เพื่อวางหัวข้อรายงานให้อยู่ 'กึ่งกลางหน้ากระดาษ'",
+        targetAction: "center",
+        hint: "คำสั่ง Center (หรือกดปุ่มคีย์ลัด Ctrl + E) ช่วยให้หัวข้ออยู่กึ่งกลางสมดุล"
+      },
+      {
+        cp: 6,
+        mode: "choice",
+        title: "ด่านตรวจขั้นตอนจราจร",
+        brief: "การพิมพ์รายการข้อปฏิบัติที่มีขั้นตอน 1, 2, 3 ตามลำดับ ควรเลือกใช้เครื่องมือใด?",
+        options: ["Bullets (หัวข้อย่อย)", "Numbering (ลำดับเลข)", "Shapes (รูปร่าง)", "Columns (คอลัมน์)"],
+        answer: 1,
+        hint: "เมื่อเนื้อหามีลำดับขั้นตอนก่อน-หลังที่แน่นอน ให้เลือก Numbering เสมอ"
+      },
+      {
+        cp: 7,
+        mode: "drag",
+        title: "แทรกภาพถ่ายเข้าสู่หน้ากระดาษ",
+        brief: "นำชื่อแท็บที่ใช้แทรกรูปภาพจากอุปกรณ์เข้าสู่เอกสารมาวางในช่องว่าง",
+        slotText: "แตะวางชื่อแท็บที่ถูกต้อง",
+        tokens: ["หน้าแรก (Home)", "แทรก (Insert)", "อ้างอิง (References)"],
+        answer: "แทรก (Insert)",
+        hint: "คำสั่ง Pictures บรรจุอยู่ภายใต้แท็บ Insert"
+      },
+      {
+        cp: 8,
+        mode: "choice",
+        title: "เมืองตาราง (Table Town)",
+        brief: "ต้องการรวมช่องเซลล์ตาราง 2 ช่องให้กลายเป็นช่องเดียวกัน ต้องใช้คำสั่งใด?",
+        options: ["Split Cells", "Merge Cells", "Delete Cells", "Insert Row"],
+        answer: 1,
+        hint: "Merge Cells คือคำสั่งสำหรับผสานเซลล์ที่เลือกเข้าด้วยกัน"
+      },
+      {
+        cp: 9,
+        mode: "drag",
+        title: "ตั้งค่ากระดาษแนวนอน",
+        brief: "เลือกคำสั่งในแท็บ Layout ที่ใช้ปรับกระดาษเป็นแนวนอน (Landscape)",
+        slotText: "วางคำสั่งกำหนดแนวกระดาษ",
+        tokens: ["Margins", "Orientation", "Size"],
+        answer: "Orientation",
+        hint: "Orientation ทำหน้าที่กำหนดทิศทางการวางหน้ากระดาษ (แนวตั้ง/แนวนอน)"
+      },
+      {
+        cp: 10,
+        mode: "choice",
+        title: "ตรวจสภาพคำสะกดผิด",
+        brief: "เส้นใต้หยัก 'สีแดง' ใต้ข้อความ มีความหมายตรงกับข้อใด?",
+        options: ["เว้นวรรคผิดพลาด", "สะกดคำผิด (Spelling)", "การจัดรูปแบบขัดแย้ง", "ฟอนต์ไม่รองรับ"],
+        answer: 1,
+        hint: "เส้นหยักสีแดงจะแจ้งเตือนคำที่สะกดไม่ถูกต้องตามพจนานุกรม"
+      },
+      {
+        cp: 11,
+        mode: "drag",
+        title: "คีย์ลัดสั่งพิมพ์ด่วน (Print)",
+        brief: "นำคีย์ลัดสำหรับเปิดหน้าต่าง Print งานออกเครื่องพิมพ์มาหยอดลงในช่อง",
+        slotText: "วางคีย์ลัดคำสั่งพิมพ์",
+        tokens: ["Ctrl + O", "Ctrl + P", "Ctrl + D"],
+        answer: "Ctrl + P",
+        hint: "Ctrl + P ย่อมาจาก Print ใช้เปิดหน้าต่างพิมพ์เอกสาร"
+      },
+      {
+        cp: 12,
+        mode: "choice",
+        title: "ภารกิจประยุกต์ส่งออกไฟล์",
+        brief: "ต้องการส่งเอกสารให้อาจารย์โดยล็อกการจัดหน้าและฟอนต์ไม่ให้เพี้ยน ควรส่งออกเป็นไฟล์ใด?",
+        options: [".txt", ".docx", ".pdf", ".rtf"],
+        answer: 2,
+        hint: "ไฟล์ .pdf เป็นมาตรฐานเอกสารคงรูปที่การจัดหน้าจะไม่ขยับเลื่อนเมื่อเปิดต่างอุปกรณ์"
+      }
+    ];
+
+    // ==========================================
+    // 4. GAME ENGINE CONTROLLER
+    // ==========================================
+    let currentIdx = 0;
+    let score = 0;
+    let lives = 3;
+    let combo = 0;
+    let isProcessing = false;
+
+    const consoleContainer = document.getElementById('consoleContainer');
+    const progressBar = document.getElementById('progressBar');
+    const metricCp = document.getElementById('metricCp');
+    const metricScore = document.getElementById('metricScore');
+    const metricHp = document.getElementById('metricHp');
+    const comboBadge = document.getElementById('comboBadge');
+    const stationHeadline = document.getElementById('stationHeadline');
+    const stationBriefing = document.getElementById('stationBriefing');
+    const runtimeInteraction = document.getElementById('runtimeInteraction');
+    const aiFeedbackBar = document.getElementById('aiFeedbackBar');
+    const aiFeedbackLog = document.getElementById('aiFeedbackLog');
+
+    function initGameEngine() {
+      CanvasEngine.init();
+      loadCheckpoint();
+    }
+
+    function loadCheckpoint() {
+      isProcessing = false;
+      aiFeedbackBar.classList.remove('active');
+
+      const data = checkpoints[currentIdx];
+      metricCp.innerText = data.cp;
+      metricScore.innerText = score;
+      metricHp.innerText = "❤️".repeat(Math.max(0, lives));
+
+      // Update progress bar & car position
+      const progressRatio = currentIdx / (checkpoints.length - 1);
+      progressBar.style.width = `${(currentIdx / checkpoints.length) * 100}%`;
+      CanvasEngine.setCarProgress(progressRatio);
+
+      stationHeadline.innerText = `ด่านที่ ${data.cp}: ${data.title}`;
+      stationBriefing.innerText = data.brief;
+      runtimeInteraction.innerHTML = '';
+
+      if (data.mode === "ribbon") {
+        buildRibbonInterface(data);
+      } else if (data.mode === "drag") {
+        buildMagneticDropInterface(data);
+      } else if (data.mode.startsWith("format")) {
+        buildWordSimulator(data);
+      } else {
+        buildChoiceInterface(data);
+      }
+    }
+
+    // Floating Score FX Generator
+    function spawnFxText(text, x, y) {
+      const fxLayer = document.getElementById('fxLayer');
+      const el = document.createElement('div');
+      el.className = 'floating-text';
+      el.innerText = text;
+      el.style.left = (x || fxLayer.offsetWidth / 2 - 40) + 'px';
+      el.style.top = (y || fxLayer.offsetHeight / 2) + 'px';
+      fxLayer.appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    }
+
+    // Trigger Screen Shake Effect
+    function triggerShake() {
+      consoleContainer.classList.add('shake');
+      setTimeout(() => consoleContainer.classList.remove('shake'), 350);
+    }
+
+    // A. Ribbon Tab Interface Builder
+    function buildRibbonInterface(data) {
+      const win = document.createElement('div');
+      win.className = 'sim-ribbon-window';
+
+      const tabBox = document.createElement('div');
+      tabBox.className = 'ribbon-tabs';
+
+      data.tabs.forEach(tabName => {
+        const t = document.createElement('div');
+        t.className = 'tab-item';
+        t.innerText = tabName;
+        t.onclick = () => {
+          if (isProcessing) return;
+          AudioEngine.playClick();
+          t.classList.add('active');
+          triggerResult(tabName === data.targetTab, data.hint);
+        };
+        tabBox.appendChild(t);
+      });
+
+      const body = document.createElement('div');
+      body.className = 'ribbon-toolbar';
+      body.innerHTML = `<span style="font-size: 0.85rem; color:#64748b;">คลิกเลือกแท็บด้านบนเพื่อเปิดชุดคำสั่ง</span>`;
+
+      win.appendChild(tabBox);
+      win.appendChild(body);
+      runtimeInteraction.appendChild(win);
+    }
+
+    // B. Magnetic Touch/Drag Drop Builder
+    function buildMagneticDropInterface(data) {
+      const rack = document.createElement('div');
+      rack.className = 'drag-interactive-rack';
+
+      const slot = document.createElement('div');
+      slot.className = 'magnetic-slot';
+      slot.innerText = data.slotText;
+      slot.ondragover = (e) => e.preventDefault();
+      slot.ondrop = (e) => {
+        e.preventDefault();
+        const val = e.dataTransfer.getData("text");
+        handleSlotFill(val, data, slot);
+      };
+
+      const tokensArea = document.createElement('div');
+      tokensArea.className = 'tokens-source';
+
+      data.tokens.forEach(tok => {
+        const chip = document.createElement('div');
+        chip.className = 'token-chip';
+        chip.innerText = tok;
+        chip.draggable = true;
+
+        chip.ondragstart = (e) => e.dataTransfer.setData("text", tok);
+        chip.onclick = () => {
+          AudioEngine.playClick();
+          handleSlotFill(tok, data, slot);
+        };
+        tokensArea.appendChild(chip);
+      });
+
+      rack.appendChild(slot);
+      rack.appendChild(tokensArea);
+      runtimeInteraction.appendChild(rack);
+    }
+
+    function handleSlotFill(val, data, slot) {
+      if (isProcessing) return;
+      slot.innerText = val;
+      slot.classList.add('snapped');
+      triggerResult(val === data.answer, data.hint);
+    }
+
+    // C. Word Simulator Builder
+    function buildWordSimulator(data) {
+      const wrap = document.createElement('div');
+      wrap.className = 'sim-ribbon-window';
+
+      const bar = document.createElement('div');
+      bar.className = 'ribbon-toolbar';
+
+      const btnB = document.createElement('button');
+      btnB.className = 'sim-tool-btn';
+      btnB.innerHTML = '<b>B</b>';
+
+      const btnAlign = document.createElement('button');
+      btnAlign.className = 'sim-tool-btn';
+      btnAlign.innerHTML = '≡';
+
+      bar.appendChild(btnB);
+      bar.appendChild(btnAlign);
+
+      const paper = document.createElement('div');
+      paper.className = 'paper-canvas';
+      paper.innerText = 'หัวข้อรายงาน: เทคโนโลยีและการประยุกต์ใช้ MS Word';
+
+      btnB.onclick = () => {
+        if (isProcessing) return;
+        AudioEngine.playClick();
+        btnB.classList.toggle('pressed');
+        paper.style.fontWeight = btnB.classList.contains('pressed') ? '700' : '400';
+        if (data.targetAction === "bold") triggerResult(true, data.hint);
+      };
+
+      btnAlign.onclick = () => {
+        if (isProcessing) return;
+        AudioEngine.playClick();
+        btnAlign.classList.toggle('pressed');
+        paper.style.textAlign = btnAlign.classList.contains('pressed') ? 'center' : 'left';
+        if (data.targetAction === "center") triggerResult(true, data.hint);
+      };
+
+      wrap.appendChild(bar);
+      wrap.appendChild(paper);
+      runtimeInteraction.appendChild(wrap);
+    }
+
+    // D. Choice Matrix Builder
+    function buildChoiceInterface(data) {
+      const grid = document.createElement('div');
+      grid.className = 'fast-options-grid';
+
+      data.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'tactile-btn';
+        btn.innerHTML = `<span><strong>${String.fromCharCode(65 + idx)}.</strong> ${opt}</span> <span>⚡</span>`;
+        btn.onclick = () => {
+          if (isProcessing) return;
+          AudioEngine.playClick();
+          if (idx === data.answer) {
+            btn.classList.add('success');
+            triggerResult(true, data.hint);
+          } else {
+            btn.classList.add('fail');
+            triggerResult(false, data.hint);
+          }
+        };
+        grid.appendChild(btn);
+      });
+
+      runtimeInteraction.appendChild(grid);
+    }
+
+    // ==========================================
+    // 5. EVALUATION & GAME JUICINESS ENGINE
+    // ==========================================
+    function triggerResult(isSuccess, hint) {
+      isProcessing = true;
+
+      if (isSuccess) {
+        combo++;
+        const points = 100 * combo;
+        score += points;
+        metricScore.innerText = score;
+
+        AudioEngine.playSuccess(combo);
+        spawnFxText(`+${points} XP!`);
+
+        if (combo >= 2) {
+          comboBadge.innerText = `${combo}X COMBO!`;
+          comboBadge.style.display = 'inline-block';
+        }
+
+        setTimeout(stepNext, 850);
+      } else {
+        combo = 0;
+        comboBadge.style.display = 'none';
+        AudioEngine.playFail();
+        triggerShake();
+
+        lives = Math.max(0, lives - 1);
+        metricHp.innerText = "❤️".repeat(lives);
+
+        aiFeedbackLog.innerText = hint;
+        aiFeedbackBar.classList.add('active');
+
+        setTimeout(stepNext, 2200);
+      }
+    }
+
+    function stepNext() {
+      if (currentIdx + 1 < checkpoints.length) {
+        currentIdx++;
+        loadCheckpoint();
+      } else {
+        concludeMission();
+      }
+    }
+
+    function concludeMission() {
+      document.getElementById('missionChamber').style.display = 'none';
+      document.getElementById('celebrationChamber').style.display = 'block';
+
+      const total = checkpoints.length;
+      const pct = ((score / (total * 100)) * 100).toFixed(0);
+
+      document.getElementById('scoreDisplaySummary').innerText = `${score} PTS`;
+      document.getElementById('percentageSummary').innerText = `ประสิทธิภาพ E1 = ${pct}%`;
+
+      launchConfetti();
+    }
+
+    function restartOrWarp() {
+      location.reload();
+    }
+
+    // Victory Particle Confetti
+    function launchConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+
+      const pieces = [];
+      const colors = ['#00f0ff', '#ff007f', '#ffe600', '#00ff88'];
+
+      for (let i = 0; i < 80; i++) {
+        pieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          size: Math.random() * 8 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vy: Math.random() * 3 + 2,
+          vx: Math.random() * 2 - 1
+        });
+      }
+
+      function renderConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          ctx.fillStyle = p.color;
+          ctx.fillRect(p.x, p.y, p.size, p.size);
+          p.y += p.vy;
+          p.x += p.vx;
+          if (p.y > canvas.height) p.y = -10;
+        });
+        requestAnimationFrame(renderConfetti);
+      }
+      renderConfetti();
+    }
+
+    window.onload = () => initGameEngine();
+  </script>
+</body>
+</html>    }
 
     .arcade-cabinet {
       width: 100%;
