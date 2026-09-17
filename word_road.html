@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Highway Traffic: Word Grand Prix (E1)</title>
+  <title>Highway Nitro Rush: Word Edition (E1)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Kanit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Kanit:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * {
@@ -19,7 +19,7 @@
     }
 
     body {
-      background: #000000;
+      background: #020617;
       font-family: 'Kanit', sans-serif;
       width: 100vw;
       height: 100vh;
@@ -30,13 +30,12 @@
       color: #ffffff;
     }
 
-    /* กล่องเกมแนวนอนแบบโรงหนังจอแก้ว */
-    .viewport-container {
+    .game-screen {
       position: relative;
       width: 100vw;
       height: 100vh;
-      background: #000;
       overflow: hidden;
+      background: #000;
     }
 
     #webglCanvas {
@@ -45,79 +44,69 @@
       display: block;
     }
 
-    /* HUD สไตล์เกมขับรถตามภาพต้นแบบ */
-    .hud-top-left {
+    /* Top HUD */
+    .hud-header {
       position: absolute;
-      top: 16px;
-      left: 20px;
+      top: 14px;
+      left: 18px;
+      right: 18px;
       z-index: 10;
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      justify-content: space-between;
+      align-items: flex-start;
       pointer-events: none;
     }
 
-    .hud-tag-box {
-      background: rgba(0, 0, 0, 0.75);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      padding: 4px 14px;
+    .gauge-block {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 14px;
       border-radius: 6px;
       font-family: 'Orbitron', monospace;
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 900;
       letter-spacing: 1px;
-      color: #ffffff;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
 
-    .hud-top-right {
-      position: absolute;
-      top: 16px;
-      right: 20px;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      pointer-events: none;
-    }
-
-    .hp-gauge {
+    .hp-cluster {
       display: flex;
       gap: 5px;
+      align-items: center;
     }
-    .hp-bar {
-      width: 16px;
-      height: 20px;
+    .hp-notch {
+      width: 14px;
+      height: 18px;
       background: #ef4444;
-      border-radius: 3px;
+      border-radius: 2px;
       box-shadow: 0 0 10px #ef4444;
       transition: all 0.2s;
     }
-    .hp-bar.lost {
-      background: #475569;
+    .hp-notch.depleted {
+      background: #334155;
       box-shadow: none;
       opacity: 0.3;
     }
 
-    /* ป้ายโจทย์ข้อสอบลอยกึ่งกลางด้านบน */
-    .mission-banner {
+    /* ป้ายบอกภารกิจโฮโลแกรม */
+    .mission-hud-board {
       position: absolute;
-      top: 16px;
+      top: 14px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
       width: 90%;
-      max-width: 680px;
-      background: rgba(15, 23, 42, 0.92);
+      max-width: 650px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 16, 30, 0.92) 100%);
       border: 2px solid #38bdf8;
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 10px 18px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-      pointer-events: none;
       text-align: center;
+      pointer-events: none;
     }
 
-    .mission-meta {
+    .hud-meta-topic {
       display: flex;
       justify-content: space-between;
       font-family: 'Orbitron';
@@ -127,27 +116,30 @@
       letter-spacing: 1px;
     }
 
-    .mission-question {
-      font-size: 1.15rem;
+    .hud-q-statement {
+      font-size: 1.12rem;
       font-weight: 700;
       color: #ffffff;
       margin-top: 4px;
       line-height: 1.35;
     }
 
-    /* แผงควบคุมพวงมาลัยซ้ายล่าง */
-    .cockpit-left {
+    /* Cockpit Touch Controls */
+    .cockpit-deck {
       position: absolute;
-      bottom: 24px;
-      left: 28px;
+      bottom: 18px;
+      left: 20px;
+      right: 20px;
       z-index: 15;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: none;
     }
 
-    .steering-wheel {
+    /* พวงมาลัยหนังซ้ายล่าง */
+    .wheel-outer {
+      pointer-events: auto;
       width: 140px;
       height: 140px;
       background: radial-gradient(circle, #27272a 0%, #09090b 80%);
@@ -159,22 +151,9 @@
       align-items: center;
       box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.9);
       cursor: pointer;
-      transition: transform 0.1s ease-out;
+      transition: transform 0.08s ease-out;
     }
-    .wheel-spoke-h {
-      position: absolute;
-      width: 100%;
-      height: 16px;
-      background: #27272a;
-    }
-    .wheel-spoke-v {
-      position: absolute;
-      width: 16px;
-      height: 50%;
-      bottom: 0;
-      background: #27272a;
-    }
-    .wheel-center-badge {
+    .wheel-hub {
       position: absolute;
       width: 44px;
       height: 44px;
@@ -185,259 +164,215 @@
       justify-content: center;
       align-items: center;
     }
-
-    /* แป้นสัมผัสเลี้ยวซ้าย-ขวาบนพวงมาลัย */
-    .steer-clicker {
+    .wheel-click-area {
       position: absolute;
       inset: 0;
       display: flex;
     }
-    .steer-half {
+    .click-half {
       flex: 1;
       height: 100%;
       cursor: pointer;
     }
 
-    /* แผงคันเร่ง-เบรก-ไนตรัส ขวาล่าง */
-    .cockpit-right {
-      position: absolute;
-      bottom: 24px;
-      right: 28px;
-      z-index: 15;
+    /* แป้นคันเร่งและเบรกขวาล่าง */
+    .pedals-cluster {
+      pointer-events: auto;
       display: flex;
       align-items: flex-end;
-      gap: 16px;
+      gap: 14px;
     }
 
-    /* ถังไนตรัส N2O ตามภาพ */
-    .nitro-bottle {
-      width: 65px;
-      height: 90px;
-      background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 50%, #475569 100%);
-      border: 2px solid #cbd5e1;
-      border-radius: 12px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.6), 0 0 20px rgba(56, 189, 248, 0.4);
-      cursor: pointer;
-      transition: transform 0.08s;
-    }
-    .nitro-bottle:active {
-      transform: scale(0.92);
-    }
-    .nitro-cap {
-      position: absolute;
-      top: -12px;
-      width: 22px;
-      height: 12px;
-      background: #1e293b;
-      border-radius: 3px;
-    }
-    .nitro-gauge {
-      width: 26px;
-      height: 26px;
-      border: 2px solid #0284c7;
-      border-radius: 50%;
-      background: #ffffff;
-      margin-bottom: 4px;
-    }
-    .nitro-label {
-      font-family: 'Orbitron';
-      font-size: 0.8rem;
-      font-weight: 900;
-      color: #0f172a;
-    }
-
-    /* แป้นเบรก */
-    .pedal-brake {
-      width: 55px;
-      height: 70px;
-      background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
-      border: 2px solid #94a3b8;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-evenly;
-      align-items: center;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-    }
-    .pedal-brake:active {
-      transform: scale(0.95);
-      background: #0f172a;
-    }
-
-    /* แป้นคันเร่ง */
-    .pedal-gas {
-      width: 60px;
-      height: 110px;
+    .pedal-box {
       background: linear-gradient(180deg, #475569 0%, #1e293b 100%);
-      border: 2px solid #cbd5e1;
+      border: 2px solid #94a3b8;
       border-radius: 8px;
       display: flex;
       flex-direction: column;
       justify-content: space-evenly;
       align-items: center;
       cursor: pointer;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.7);
     }
-    .pedal-gas:active {
+    .pedal-box:active {
       transform: scale(0.95);
       background: #0f172a;
     }
-
-    .pedal-slot {
-      width: 36px;
-      height: 5px;
+    .pedal-groove {
+      width: 70%;
+      height: 4px;
       background: #020617;
       border-radius: 2px;
     }
 
-    /* หน้าจอเริ่มต้นเกมระดับ AAA */
-    .start-dialog-curtain {
+    /* หน้าจอเปิดตัวเกม (Garage Showroom Style) */
+    .garage-lobby {
       position: absolute;
       inset: 0;
       z-index: 40;
-      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.95) 0%, rgba(2, 6, 23, 0.98) 100%);
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.99) 100%);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 30px;
+      padding: 24px;
       text-align: center;
     }
 
-    .main-game-title {
+    .game-logo {
       font-family: 'Orbitron', monospace;
-      font-size: 3.5rem;
+      font-size: 3.4rem;
       font-style: italic;
       font-weight: 900;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       color: #ffffff;
-      text-shadow: 0 0 40px #38bdf8, 0 10px 20px rgba(0,0,0,0.8);
-      margin-bottom: 8px;
+      text-shadow: 0 0 35px #38bdf8, 0 10px 20px rgba(0,0,0,0.8);
     }
 
-    .btn-start-drive {
+    .rule-tag {
+      background: rgba(30, 41, 59, 0.8);
+      border-left: 4px solid #f59e0b;
+      padding: 10px 16px;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      margin: 14px 0;
+      text-align: left;
+      max-width: 480px;
+      line-height: 1.5;
+    }
+
+    .btn-ignite {
       background: linear-gradient(90deg, #10b981, #059669);
       border: none;
       color: #ffffff;
-      padding: 18px 56px;
-      font-size: 1.3rem;
+      padding: 18px 54px;
+      font-size: 1.25rem;
       font-weight: 900;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 0 35px rgba(16, 185, 129, 0.6);
-      margin-top: 28px;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
       font-family: 'Orbitron';
       letter-spacing: 2px;
       transition: transform 0.1s;
     }
-    .btn-start-drive:active {
+    .btn-ignite:active {
       transform: scale(0.96);
+    }
+
+    /* แฟลชแจ้งเตือนตอนเก็บไนโตร / ชน */
+    .nitro-flash {
+      position: absolute;
+      inset: 0;
+      z-index: 25;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
     }
   </style>
 </head>
 <body>
 
-  <div class="viewport-container">
-    <!-- Top Left HUD (ตามภาพต้นแบบ) -->
-    <div class="hud-top-left">
-      <div class="hud-tag-box" id="hudSpeedBox">120 KM/H</div>
-      <div class="hud-tag-box" style="color: #f59e0b;">SCORE: <span id="hudScore">0</span></div>
-    </div>
+  <div class="game-screen">
+    <!-- Top Left HUD -->
+    <div class="hud-header">
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div class="gauge-block" id="hudSpeed" style="color: #38bdf8;">120 KM/H</div>
+        <div class="gauge-block" style="color: #f59e0b;">SCORE: <span id="hudScore">0</span></div>
+      </div>
 
-    <!-- Top Right HUD -->
-    <div class="hud-top-right">
-      <div class="hud-tag-box" style="color: #38bdf8;">STAGE: <span id="hudStage">1/12</span></div>
-      <div class="hp-gauge" id="hudHpGauge">
-        <div class="hp-bar"></div>
-        <div class="hp-bar"></div>
-        <div class="hp-bar"></div>
+      <!-- Top Right HUD -->
+      <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+        <div class="gauge-block" style="color: #38bdf8;">STAGE: <span id="hudStage">1/12</span></div>
+        <div class="hp-cluster" id="hudHp">
+          <div class="hp-notch"></div>
+          <div class="hp-notch"></div>
+          <div class="hp-notch"></div>
+        </div>
       </div>
     </div>
 
-    <!-- ป้ายโจทย์ข้อสอบทางหลวงกึ่งกลาง -->
-    <div class="mission-banner">
-      <div class="mission-meta">
+    <!-- แผงโจทย์ข้อสอบทางหลวง -->
+    <div class="mission-hud-board">
+      <div class="hud-meta-topic">
         <span id="topicTag">CHECKPOINT 1 // INTERFACE</span>
-        <span>HIT CORRECT CAR</span>
+        <span>COLLECT NITRO ANSWER</span>
       </div>
-      <div class="mission-question" id="promptText">กำลังเชื่อมต่อข้อมูลทางหลวง...</div>
+      <div class="hud-q-statement" id="promptText">กำลังเชื่อมต่อข้อมูลทางหลวง...</div>
     </div>
 
     <!-- WebGL Canvas เรนเดอร์ 3D เต็มจอ -->
     <div id="webglCanvas"></div>
 
-    <!-- พวงมาลัยซ้ายล่าง -->
-    <div class="cockpit-left">
-      <div class="steering-wheel" id="steerWheel">
-        <div class="wheel-spoke-h"></div>
-        <div class="wheel-spoke-v"></div>
-        <div class="wheel-center-badge">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#94a3b8"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/><circle cx="7.5" cy="14.5" r="1.5"/><circle cx="16.5" cy="14.5" r="1.5"/></svg>
+    <!-- แฟลชหน้าจอ -->
+    <div class="nitro-flash" id="flashOverlay"></div>
+
+    <!-- แผงสัมผัสขับรถ -->
+    <div class="cockpit-deck">
+      <!-- พวงมาลัยซ้าย -->
+      <div class="wheel-outer" id="steerWheel">
+        <div style="position:absolute; width:100%; height:16px; background:#27272a;"></div>
+        <div style="position:absolute; width:16px; height:50%; bottom:0; background:#27272a;"></div>
+        <div class="wheel-hub">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#94a3b8"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.85 7h10.29l1.04 3H5.81l1.04-3zM19 17H5v-4.66l.12-.34h13.77l.11.34V17z"/></svg>
         </div>
-        <div class="steer-clicker">
-          <div class="steer-half" id="steerHalfL"></div>
-          <div class="steer-half" id="steerHalfR"></div>
+        <div class="wheel-click-area">
+          <div class="click-half" id="steerL"></div>
+          <div class="click-half" id="steerR"></div>
+        </div>
+      </div>
+
+      <!-- แป้นเบรกและคันเร่ง -->
+      <div class="pedals-cluster">
+        <div class="pedal-box" id="btnBrake" style="width:58px; height:75px;">
+          <div class="pedal-groove"></div>
+          <div class="pedal-groove"></div>
+          <div class="pedal-groove"></div>
+          <span style="font-family:'Orbitron'; font-size:0.6rem; color:#cbd5e1;">BRAKE</span>
+        </div>
+        <div class="pedal-box" id="btnGas" style="width:64px; height:110px;">
+          <div class="pedal-groove"></div>
+          <div class="pedal-groove"></div>
+          <div class="pedal-groove"></div>
+          <div class="pedal-groove"></div>
+          <span style="font-family:'Orbitron'; font-size:0.65rem; color:#cbd5e1;">GAS</span>
         </div>
       </div>
     </div>
 
-    <!-- แป้นคันเร่ง-เบรก-ไนตรัส ขวาล่าง -->
-    <div class="cockpit-right">
-      <div class="nitro-bottle" id="btnNitro">
-        <div class="nitro-cap"></div>
-        <div class="nitro-gauge"></div>
-        <div class="nitro-label">N2O</div>
-      </div>
-      <div class="pedal-brake" id="btnBrake">
-        <div class="pedal-slot"></div>
-        <div class="pedal-slot"></div>
-        <div class="pedal-slot"></div>
-      </div>
-      <div class="pedal-gas" id="btnGas">
-        <div class="pedal-slot"></div>
-        <div class="pedal-slot"></div>
-        <div class="pedal-slot"></div>
-        <div class="pedal-slot"></div>
-        <div class="pedal-slot"></div>
-      </div>
-    </div>
-
-    <!-- Start Dialog Screen -->
-    <div class="start-dialog-curtain" id="startScreen">
-      <div style="width: 80px; height: 80px; border: 3px solid #38bdf8; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; box-shadow: 0 0 35px rgba(56, 189, 248, 0.5);">
-        <svg width="44" height="44" viewBox="0 0 24 24" fill="#38bdf8"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-      </div>
-      <h1 class="main-game-title">HIGHWAY RACER</h1>
-      <p style="color: #cbd5e1; font-size: 1.1rem; line-height: 1.6; max-width: 480px;">
-        ขับรถซิ่งบนทางหลวง 3 มิติ ผ่าน 12 Checkpoints ของ Microsoft Word ม.1<br>
-        <strong>"หมุนพวงมาลัยเปลี่ยนเลนพุ่งชนท้ายรถที่แบกคำตอบที่ถูกต้องเพื่อผ่านด่าน"</strong>
+    <!-- Start Lobby Screen -->
+    <div class="garage-lobby" id="startScreen">
+      <h1 class="game-logo">NITRO HIGHWAY</h1>
+      <p style="color: #94a3b8; font-size: 1.05rem; max-width: 480px; margin-top: 6px;">
+        จำลองการขับขี่ความเร็วสูงบนทางหลวง 3 มิติ เพื่อพิชิต 12 ด่าน Microsoft Word ม.1
       </p>
-      <div style="margin-top: 14px; font-size: 0.9rem; color: #f59e0b; font-family:'Orbitron';">
-        STEER WITH WHEEL / KEYBOARD [A, D or ARROWS]
+      
+      <div class="rule-tag">
+        <div style="font-weight:700; color:#f59e0b; margin-bottom:4px;">กฎกติกาการแข่งขัน:</div>
+        <div>1. <strong>รถคันอื่นคืออุปสรรค:</strong> อย่าขับชนเด็ดขาด! หากชนรถจะหมุนเคว้ง ความเร็วตกฮวบ และเสียพลังชีวิต</div>
+        <div>2. <strong>คำตอบคือถังไนโตร N₂O:</strong> บังคับรถเก็บถังไนโตรที่มีคำตอบถูกต้อง รถจะระเบิดพลังพุ่งทะยานผ่านด่าน!</div>
       </div>
-      <button class="btn-start-drive" onclick="igniteEngine()">START DRIVE</button>
+
+      <div style="font-size: 0.85rem; color: #38bdf8; font-family:'Orbitron';">
+        STEER: WHEEL / KEYBOARD [A, D or ARROWS]
+      </div>
+
+      <button class="btn-ignite" onclick="igniteEngine()">START ENGINE</button>
     </div>
 
-    <!-- Finish Dialog Screen -->
-    <div class="start-dialog-curtain" id="endScreen" style="display: none;">
-      <h1 class="main-game-title" style="color: #10b981; text-shadow: 0 0 40px #10b981;">GRAND PRIX CLEARED</h1>
-      <div style="background: rgba(15, 23, 42, 0.92); border: 2px solid #f59e0b; border-radius: 12px; padding: 24px; width: 85%; max-width: 480px; margin: 18px 0;">
-        <div style="font-size: 0.85rem; color: #f59e0b; letter-spacing: 2px; font-family: 'Orbitron';">HIGHWAY PERFORMANCE (E1)</div>
+    <!-- End Screen -->
+    <div class="garage-lobby" id="endScreen" style="display: none;">
+      <h1 class="game-logo" style="color: #10b981; text-shadow: 0 0 35px #10b981;">MISSION CLEARED</h1>
+      <div style="background: rgba(15, 23, 42, 0.95); border: 2px solid #f59e0b; border-radius: 12px; padding: 24px; width: 85%; max-width: 480px; margin: 18px 0;">
+        <div style="font-size: 0.85rem; color: #f59e0b; letter-spacing: 2px; font-family: 'Orbitron';">OVERALL PERFORMANCE (E1)</div>
         <div style="font-size: 3.5rem; font-weight: 900; color: #ffffff; margin: 6px 0;" id="finalScoreVal">12 / 12</div>
         <div style="font-size: 1.1rem; color: #10b981; font-weight: 700;" id="finalPctVal">ประสิทธิภาพ E1 = 100%</div>
       </div>
-      <button class="btn-start-drive" onclick="alert('เชื่อมต่อไปยังสนามสอบ Word Jump Game (E2)')">ENTER E2 EXAM</button>
+      <button class="btn-ignite" onclick="alert('เชื่อมต่อไปยังสนามสอบ Word Jump Game (E2)')">PROCEED TO E2</button>
     </div>
   </div>
 
   <script>
-    // 1. DYNAMIC AUDIO ENGINE (Web Audio API)
+    // 1. DYNAMIC AUDIO SYNTHESIZER
     const AudioEngine = {
       ctx: null,
       osc: null,
@@ -462,25 +397,32 @@
       },
       setPitch(spd) {
         if (this.osc && this.ctx) {
-          this.osc.frequency.setTargetAtTime(40 + (spd / 220) * 90, this.ctx.currentTime, 0.05);
+          this.osc.frequency.setTargetAtTime(38 + (spd / 220) * 95, this.ctx.currentTime, 0.05);
         }
       },
-      beep(freq, dur, type='sine') {
+      beep(f, d, t='sine') {
         try {
           const o = this.ctx.createOscillator(), g = this.ctx.createGain();
-          o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          g.gain.setValueAtTime(0.1, this.ctx.currentTime);
-          g.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+          o.type = t; o.frequency.setValueAtTime(f, this.ctx.currentTime);
+          g.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          g.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + d);
           o.connect(g); g.connect(this.ctx.destination);
-          o.start(); o.stop(this.ctx.currentTime + dur);
+          o.start(); o.stop(this.ctx.currentTime + d);
         } catch(e) {}
       },
-      steer() { this.beep(260, 0.04, 'triangle'); },
-      pass() { this.beep(523, 0.08); setTimeout(() => this.beep(784, 0.16), 70); },
-      crash() { this.beep(130, 0.25, 'sawtooth'); }
+      steer() { this.beep(280, 0.04, 'triangle'); },
+      nitroBoost() {
+        this.beep(523, 0.1, 'square');
+        setTimeout(() => this.beep(659, 0.1, 'square'), 80);
+        setTimeout(() => this.beep(880, 0.3, 'sawtooth'), 160);
+      },
+      crash() {
+        this.beep(120, 0.3, 'sawtooth');
+        setTimeout(() => this.beep(80, 0.4, 'sawtooth'), 100);
+      }
     };
 
-    // 2. DATA CHECKPOINTS 12 ข้อ ม.1
+    // 2. CHECKPOINTS 12 ข้อ ม.1
     const missions = [
       { id: 1, topic: "01. แถบคำสั่ง", q: "ต้องการแทรกรูปภาพและตาราง อยู่ภายใต้เมนูแท็บใด?", lanes: ["Home", "Insert", "Layout"], correct: 1 },
       { id: 2, topic: "02. บันทึกแฟ้ม", q: "ปุ่มคีย์ลัดสำหรับบันทึกงาน (Save) ด่วนคือข้อใด?", lanes: ["Ctrl + C", "Ctrl + Z", "Ctrl + S"], correct: 2 },
@@ -496,19 +438,21 @@
       { id: 12, topic: "12. ส่งออกไฟล์", q: "บันทึกรายงานเป็นไฟล์ใด เพื่อล็อกหน้าและฟอนต์ไม่ให้เลื่อน?", lanes: [".docx", ".txt", ".pdf"], correct: 2 }
     ];
 
-    // 3. THREE.JS 3D HIGHWAY ENGINE (REALISTIC HIGHWAY)
+    // 3. THREE.JS 3D SCENE & MODELING
     let scene, camera, renderer;
     let playerCar, exhaustFlame;
     let roadLines = [];
-    let trafficCars = [];
-    let backgroundTraffic = [];
+    let obstacleCars = [];
+    let nitroBottles = [];
     let currentStep = 0;
     let score = 0;
     let lives = 3;
     let speed = 120;
     let targetLane = 1; // 0 = ซ้าย, 1 = กลาง, 2 = ขวา
     let currentLaneX = 0;
-    let wheelRotation = 0;
+    let isSpinning = false;
+    let spinAngle = 0;
+    let isNitroBoosting = false;
     let isLocked = false;
     let isRunning = false;
 
@@ -517,77 +461,63 @@
     function init3D() {
       const container = document.getElementById('webglCanvas');
       scene = new THREE.Scene();
-      
-      // ท้องฟ้าธรรมชาติสดใสตามภาพต้นแบบ
-      scene.background = new THREE.Color(0xbbe1fa);
-      scene.fog = new THREE.Fog(0xbbe1fa, 50, 160);
+      scene.background = new THREE.Color(0xa5f3fc);
+      scene.fog = new THREE.Fog(0xa5f3fc, 50, 170);
 
       camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-      camera.position.set(0, 3.4, 6.8);
-      camera.lookAt(0, 1.4, -15);
+      camera.position.set(0, 3.2, 6.8);
+      camera.lookAt(0, 1.2, -15);
 
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setSize(container.clientWidth, container.clientHeight);
       renderer.shadowMap.enabled = true;
       container.appendChild(renderer.domElement);
 
-      // แสงสว่างแดดธรรมชาติ
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.85);
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 0.85);
       scene.add(hemiLight);
 
-      const dirLight = new THREE.DirectionalLight(0xfff7ed, 0.9);
-      dirLight.position.set(20, 35, 20);
+      const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.95);
+      dirLight.position.set(25, 40, 20);
       dirLight.castShadow = true;
       scene.add(dirLight);
 
-      // 1. ถนนลาดยางทางหลวง 3 มิติ
+      // ถนน 3 มิติ
       const roadGeo = new THREE.PlaneGeometry(15, 400);
-      const roadMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
+      const roadMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.75 });
       const road = new THREE.Mesh(roadGeo, roadMat);
       road.rotation.x = -Math.PI / 2;
       scene.add(road);
 
-      // พื้นหญ้าสองข้างทาง
+      // ขอบทางหญ้า & การ์ดเรลโลหะ
       for (let side of [-25, 25]) {
-        const grassGeo = new THREE.PlaneGeometry(35, 400);
-        const grassMat = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
-        const grass = new THREE.Mesh(grassGeo, grassMat);
+        const grass = new THREE.Mesh(new THREE.PlaneGeometry(35, 400), new THREE.MeshLambertMaterial({ color: 0x22c55e }));
         grass.rotation.x = -Math.PI / 2;
         grass.position.set(side, -0.05, 0);
         scene.add(grass);
       }
 
-      // 2. ราวกั้นการ์ดเรลโลหะสองข้างทาง (ตามภาพต้นแบบ)
       for (let side of [-7.6, 7.6]) {
-        const railGeo = new THREE.BoxGeometry(0.3, 0.7, 400);
-        const railMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 });
-        const rail = new THREE.Mesh(railGeo, railMat);
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.7, 400), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 }));
         rail.position.set(side, 0.35, 0);
         scene.add(rail);
 
-        // เสาไฟถนนทางหลวง
-        for (let z = 0; z < 15; z++) {
-          const poleGeo = new THREE.CylinderGeometry(0.08, 0.08, 6);
-          const poleMat = new THREE.MeshStandardMaterial({ color: 0x64748b });
-          const pole = new THREE.Mesh(poleGeo, poleMat);
+        // เสาไฟข้างทาง
+        for (let z = 0; z < 16; z++) {
+          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 6), new THREE.MeshStandardMaterial({ color: 0x64748b }));
           pole.position.set(side * 1.15, 3, -z * 25);
           scene.add(pole);
         }
       }
 
-      // 3. อุโมงค์ภูเขาอิฐสีส้ม-ชมพูที่ปลายทาง (ตามภาพต้นแบบ)
-      const tunnelGeo = new THREE.TorusGeometry(14, 6, 16, 30, Math.PI);
-      const tunnelMat = new THREE.MeshLambertMaterial({ color: 0xf472b6 });
-      const tunnel = new THREE.Mesh(tunnelGeo, tunnelMat);
-      tunnel.position.set(0, 0, -120);
+      // อุโมงค์โค้งภูเขา
+      const tunnel = new THREE.Mesh(new THREE.TorusGeometry(14, 6, 16, 30, Math.PI), new THREE.MeshLambertMaterial({ color: 0xf472b6 }));
+      tunnel.position.set(0, 0, -130);
       scene.add(tunnel);
 
-      // 4. เส้นประแบ่งเลนสีเหลือง
+      // เส้นประสีเหลือง
       for (let l of [-LANE_WIDTH / 2, LANE_WIDTH / 2]) {
         for (let i = 0; i < 25; i++) {
-          const dashGeo = new THREE.PlaneGeometry(0.25, 4.5);
-          const dashMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
-          const dash = new THREE.Mesh(dashGeo, dashMat);
+          const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.25, 4.5), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
           dash.rotation.x = -Math.PI / 2;
           dash.position.set(l, 0.02, -i * 14);
           scene.add(dash);
@@ -595,118 +525,137 @@
         }
       }
 
-      // 5. สร้างรถสปอร์ตสีขาวของผู้เล่น (Nissan GT-R Style ตามภาพต้นแบบ)
-      playerCar = createDetailedWhiteCar();
-      playerCar.position.set(0, 0, 0);
+      // รถสปอร์ตสีขาวตัวจริง
+      playerCar = createSportCar(0xf8fafc, true);
       scene.add(playerCar);
 
-      // สร้างรถจราจรแวดล้อมประกอบฉาก (รถบัสส้ม, รถเก๋งฟ้า, รถบรรทุก)
-      createBackgroundTraffic();
+      // สร้างรถอุปสรรคบนถนน
+      createTrafficObstacles();
 
       window.addEventListener('resize', onResize);
     }
 
-    // สร้างรถสปอร์ตสีขาวตัวเอกพร้อมไฟโดนัทคู่
-    function createDetailedWhiteCar() {
+    // ปั้นโมเดลรถสปอร์ตมีส่วนเว้าส่วนโค้ง (ไม่ใช่กล่องเหลี่ยม)
+    function createSportCar(colorHex, isPlayer = false) {
       const group = new THREE.Group();
 
-      // บอดี้ล่าง
-      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.1, metalness: 0.2 });
-      const body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.65, 3.8), bodyMat);
-      body.position.y = 0.55;
-      group.add(body);
+      // แชสซีส์ล่าง
+      const lowerMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.2, metalness: 0.3 });
+      const lowerBody = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.05, 3.8, 8), lowerMat);
+      lowerBody.rotation.x = Math.PI / 2;
+      lowerBody.scale.set(1.0, 0.55, 1.0);
+      lowerBody.position.y = 0.55;
+      group.add(lowerBody);
 
-      // กระโปรงและห้องคนขับ
-      const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.55, 1.9), new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1 }));
-      cabin.position.set(0, 1.05, -0.2);
+      // ห้องโดยสารลาดเอียง (Aerodynamic Cabin)
+      const cabinMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1 });
+      const cabin = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.85, 2.0, 8), cabinMat);
+      cabin.rotation.x = Math.PI / 2;
+      cabin.scale.set(0.9, 0.5, 1.0);
+      cabin.position.set(0, 0.95, -0.2);
       group.add(cabin);
 
-      // สปอยเลอร์หลังยกสูง (GT Wing)
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.08, 0.35), bodyMat);
-      wing.position.set(0, 1.15, 1.6);
-      group.add(wing);
-
-      const wingPostL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.08), bodyMat);
-      wingPostL.position.set(-0.65, 0.9, 1.6);
-      const wingPostR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.08), bodyMat);
-      wingPostR.position.set(0.65, 0.9, 1.6);
-      group.add(wingPostL);
-      group.add(wingPostR);
-
-      // ล้อแม็ก 4 ล้อ
-      const wheelMat = new THREE.MeshBasicMaterial({ color: 0x111827 });
+      // ซุ้มล้อและล้อแม็ก
+      const wheelMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+      const brakeMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
       [[-1.05, 0.35, 1.1], [1.05, 0.35, 1.1], [-1.05, 0.35, -1.1], [1.05, 0.35, -1.1]].forEach(pos => {
-        const w = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.3, 16), wheelMat);
-        w.rotation.z = Math.PI / 2;
-        w.position.set(...pos);
-        group.add(w);
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.3, 16), wheelMat);
+        wheel.rotation.z = Math.PI / 2;
+        wheel.position.set(...pos);
+        group.add(wheel);
+
+        const brake = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.32, 8), brakeMat);
+        brake.rotation.z = Math.PI / 2;
+        brake.position.set(...pos);
+        group.add(brake);
       });
 
-      // ไฟท้ายโดนัทคู่สีแดง 4 วง (ตามภาพต้นแบบ)
+      // ไฟท้ายโดนัทคู่สีแดง 4 ดวง
       const donutMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
-      [[-0.65, 0.6, 1.91], [-0.35, 0.6, 1.91], [0.35, 0.6, 1.91], [0.65, 0.6, 1.91]].forEach(pos => {
-        const d = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.035, 8, 16), donutMat);
-        d.position.set(...pos);
-        group.add(d);
+      [[-0.65, 0.55, 1.91], [-0.35, 0.55, 1.91], [0.35, 0.55, 1.91], [0.65, 0.55, 1.91]].forEach(pos => {
+        const donut = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.035, 8, 16), donutMat);
+        donut.position.set(...pos);
+        group.add(donut);
       });
 
-      // ท่อไอเสียพ่นไฟสีทอง
-      const exhaustPipe = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.2), new THREE.MeshStandardMaterial({ color: 0x475569 }));
-      exhaustPipe.rotation.x = Math.PI / 2;
-      exhaustPipe.position.set(-0.55, 0.25, 1.95);
-      group.add(exhaustPipe);
+      // ปีกสปอยเลอร์หลัง GT
+      if (isPlayer) {
+        const wing = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.08, 0.35), lowerMat);
+        wing.position.set(0, 1.15, 1.6);
+        group.add(wing);
 
-      exhaustFlame = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.8, 8), new THREE.MeshBasicMaterial({ color: 0xfbbf24 }));
-      exhaustFlame.rotation.x = -Math.PI / 2;
-      exhaustFlame.position.set(-0.55, 0.25, 2.35);
-      group.add(exhaustFlame);
+        const p1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.08), lowerMat);
+        p1.position.set(-0.65, 0.9, 1.6);
+        const p2 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.45, 0.08), lowerMat);
+        p2.position.set(0.65, 0.9, 1.6);
+        group.add(p1);
+        group.add(p2);
+
+        // เปลวไฟท่อไอเสีย
+        exhaustFlame = new THREE.Mesh(new THREE.ConeGeometry(0.15, 1.0, 8), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+        exhaustFlame.rotation.x = -Math.PI / 2;
+        exhaustFlame.position.set(-0.55, 0.25, 2.45);
+        exhaustFlame.visible = false;
+        group.add(exhaustFlame);
+      }
 
       return group;
     }
 
-    // สร้างรถประกอบฉากตามภาพต้นแบบ (รถบัส รถเก๋งฟ้า รถสปอร์ตแดง)
-    function createBackgroundTraffic() {
-      // รถบัสสีส้ม (ซ้ายสุด)
-      const bus = new THREE.Mesh(new THREE.BoxGeometry(2.4, 2.0, 7.0), new THREE.MeshLambertMaterial({ color: 0xf97316 }));
-      bus.position.set(-8.5, 1.2, -45);
-      scene.add(bus);
-      backgroundTraffic.push(bus);
+    // 4. SPAWN OBSTACLE VEHICLES (รถอุปสรรคบนทางหลวง)
+    function createTrafficObstacles() {
+      obstacleCars.forEach(c => scene.remove(c));
+      obstacleCars = [];
 
-      // รถเก๋ง SUV สีน้ำเงิน
-      const suv = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.3, 3.8), new THREE.MeshLambertMaterial({ color: 0x2563eb }));
-      suv.position.set(-LANE_WIDTH, 0.8, -25);
-      scene.add(suv);
-      backgroundTraffic.push(suv);
+      const colors = [0xdc2626, 0x2563eb, 0xf97316, 0x16a34a];
+      const startZ = [-35, -60, -90, -115];
 
-      // รถสปอร์ตสีแดง (ขวา)
-      const redSport = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.8, 3.6), new THREE.MeshLambertMaterial({ color: 0xdc2626 }));
-      redSport.position.set(LANE_WIDTH, 0.6, -30);
-      scene.add(redSport);
-      backgroundTraffic.push(redSport);
+      for (let i = 0; i < 4; i++) {
+        const lane = (i % 3);
+        const car = createSportCar(colors[i]);
+        car.position.set((lane - 1) * LANE_WIDTH, 0, startZ[i]);
+        scene.add(car);
+        obstacleCars.push(car);
+      }
     }
 
-    // 4. SPAWN ANSWER CARS (รถคำตอบวิ่งข้างหน้า 3 เลน)
-    function spawnAnswerCars() {
-      trafficCars.forEach(c => scene.remove(c.mesh));
-      trafficCars = [];
+    // 5. SPAWN NITRO ANSWER BOTTLES (ถังไนโตรคำตอบ 3 ถัง)
+    function spawnNitroAnswers() {
+      nitroBottles.forEach(b => scene.remove(b.mesh));
+      nitroBottles = [];
 
       const m = missions[currentStep];
       const lanesX = [-LANE_WIDTH, 0, LANE_WIDTH];
-      const colors = [0x3b82f6, 0x10b981, 0x8b5cf6];
 
       for (let i = 0; i < 3; i++) {
-        const car = new THREE.Group();
-        const b = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.7, 3.6), new THREE.MeshStandardMaterial({ color: colors[i] }));
-        b.position.y = 0.55;
-        car.add(b);
+        const bottleGroup = new THREE.Group();
 
-        // ป้ายข้อความคำตอบลอยเหนือรถ
+        // ถัง N2O สีเงินสะท้อนแสงทรงกระบอกมน
+        const cylinder = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.4, 0.4, 1.6, 16),
+          new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.8, roughness: 0.2 })
+        );
+        cylinder.position.y = 1.0;
+        bottleGroup.add(cylinder);
+
+        // หัววาล์วถัง
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.3, 8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+        cap.position.y = 1.9;
+        bottleGroup.add(cap);
+
+        // วงแหวนพลังงานเรืองแสงหมุนรอบถัง
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.65, 0.05, 8, 20), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = 1.0;
+        bottleGroup.add(ring);
+
+        // ป้ายโฮโลแกรมลอยแสดงคำตอบ
         const cv = document.createElement('canvas');
-        cv.width = 360;
+        cv.width = 380;
         cv.height = 120;
         const cCtx = cv.getContext('2d');
-        cCtx.fillStyle = 'rgba(15, 23, 42, 0.94)';
-        cCtx.roundRect(0, 0, 360, 120, 18);
+        cCtx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        cCtx.roundRect(0, 0, 380, 120, 18);
         cCtx.fill();
         cCtx.strokeStyle = '#38bdf8';
         cCtx.lineWidth = 6;
@@ -715,17 +664,17 @@
         cCtx.font = 'bold 38px Kanit';
         cCtx.textAlign = 'center';
         cCtx.textBaseline = 'middle';
-        cCtx.fillText(m.lanes[i], 180, 60);
+        cCtx.fillText(m.lanes[i], 190, 60);
 
         const tex = new THREE.CanvasTexture(cv);
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex }));
-        sprite.scale.set(4.2, 1.4, 1);
-        sprite.position.set(0, 2.6, 0);
-        car.add(sprite);
+        sprite.scale.set(4.2, 1.3, 1);
+        sprite.position.set(0, 2.7, 0);
+        bottleGroup.add(sprite);
 
-        car.position.set(lanesX[i], 0, -95);
-        scene.add(car);
-        trafficCars.push({ mesh: car, lane: i });
+        bottleGroup.position.set(lanesX[i], 0, -100);
+        scene.add(bottleGroup);
+        nitroBottles.push({ mesh: bottleGroup, lane: i });
       }
     }
 
@@ -736,7 +685,7 @@
       renderer.setSize(c.clientWidth, c.clientHeight);
     }
 
-    // 5. MAIN GAME LOOP
+    // 6. MAIN GAME LOOP
     function gameLoop() {
       if (!isRunning) return;
 
@@ -748,33 +697,55 @@
         if (dash.position.z > 12) dash.position.z -= 300;
       });
 
-      // เลื่อนรถประกอบฉาก
-      backgroundTraffic.forEach(v => {
-        v.position.z += deltaSpd * 0.4;
-        if (v.position.z > 15) v.position.z = -110;
+      // เลื่อนรถอุปสรรคบนถนน (วิ่งช้ากว่าเรา)
+      obstacleCars.forEach(obs => {
+        obs.position.z += deltaSpd * 0.45;
+        if (obs.position.z > 15) {
+          obs.position.z = -120 - Math.random() * 30;
+          const randomLane = Math.floor(Math.random() * 3);
+          obs.position.x = (randomLane - 1) * LANE_WIDTH;
+        }
+
+        // ชนรถอุปสรรค: รถหมุนเคว้ง 360 และความเร็วตก!
+        if (!isSpinning && Math.abs(obs.position.z - playerCar.position.z) < 2.5 && Math.abs(obs.position.x - playerCar.position.x) < 1.6) {
+          triggerCarSpinCrash();
+        }
       });
 
-      // ขยับเลนรถผู้เล่นแบบ Smooth Lerp
-      const targetX = (targetLane - 1) * LANE_WIDTH;
-      currentLaneX += (targetX - currentLaneX) * 0.16;
-      playerCar.position.x = currentLaneX;
-      playerCar.rotation.y = (targetX - currentLaneX) * 0.09;
+      // เลื่อนถังไนโตรคำตอบเข้ามาหา
+      nitroBottles.forEach(b => {
+        b.mesh.position.z += deltaSpd * 0.9;
+        b.mesh.rotation.y += 0.03; // ถังหมุนวน
 
-      // หมุนพวงมาลัย
-      wheelRotation += ((targetX - currentLaneX) * 2.5 - wheelRotation) * 0.2;
-      document.getElementById('steerWheel').style.transform = `rotate(${wheelRotation * 30}deg)`;
-
-      // เปลวไฟท่อไอเสียกระพริบ
-      exhaustFlame.scale.set(1 + Math.random() * 0.4, 1 + Math.random() * 0.5, 1);
-
-      // เลื่อนรถคำตอบเข้ามาหา
-      trafficCars.forEach(tc => {
-        tc.mesh.position.z += deltaSpd * 0.85;
+        // ถึงจุดเก็บถังไนโตร
+        if (b.mesh.position.z >= -2.0 && b.mesh.position.z <= 1.0 && !isLocked) {
+          evaluateNitroCollect();
+        }
       });
 
-      // ตรวจสอบการชนท้ายรถคำตอบ (Collision Detection)
-      if (trafficCars.length > 0 && trafficCars[0].mesh.position.z >= -3.6 && !isLocked) {
-        evaluateCrash();
+      // แอนิเมชันรถหมุนเคว้งเมื่อชนอุปสรรค
+      if (isSpinning) {
+        spinAngle += 0.25;
+        playerCar.rotation.y = spinAngle;
+        if (spinAngle >= Math.PI * 2) {
+          isSpinning = false;
+          playerCar.rotation.y = 0;
+          speed = 90; // ค่อยๆ เร่งความเร็วกลับคืน
+        }
+      } else {
+        // ควบคุมตำแหน่งเลนรถปกติ (Smooth Lerp)
+        const targetX = (targetLane - 1) * LANE_WIDTH;
+        currentLaneX += (targetX - currentLaneX) * 0.16;
+        playerCar.position.x = currentLaneX;
+        playerCar.rotation.y = (targetX - currentLaneX) * 0.08;
+      }
+
+      // ระบบไนโตรบูสต์พ่นไฟ
+      if (isNitroBoosting) {
+        exhaustFlame.visible = true;
+        exhaustFlame.scale.set(1 + Math.random() * 0.5, 1.4 + Math.random() * 0.8, 1);
+      } else {
+        exhaustFlame.visible = false;
       }
 
       AudioEngine.setPitch(speed);
@@ -782,60 +753,97 @@
       requestAnimationFrame(gameLoop);
     }
 
-    function evaluateCrash() {
+    // เกิดอุบัติเหตุชนรถอุปสรรค: รถหมุนเคว้ง ความเร็วตกฮวบ!
+    function triggerCarSpinCrash() {
+      isSpinning = true;
+      spinAngle = 0;
+      speed = 20; // ความเร็วตกฮวบ
+      document.getElementById('hudSpeed').innerText = '20 KM/H';
+      lives = Math.max(0, lives - 1);
+      updateHud();
+      AudioEngine.crash();
+
+      // แฟลชสีแดง
+      const fl = document.getElementById('flashOverlay');
+      fl.style.background = 'rgba(239, 68, 68, 0.4)';
+      fl.style.opacity = '1';
+      setTimeout(() => { fl.style.opacity = '0'; }, 300);
+
+      if (lives <= 0) {
+        setTimeout(concludeRace, 800);
+      }
+    }
+
+    // เก็บถังไนโตรคำตอบ
+    function evaluateNitroCollect() {
       isLocked = true;
       const m = missions[currentStep];
       const isCorrect = (targetLane === m.correct);
 
       if (isCorrect) {
-        AudioEngine.pass();
+        // ไนโตรระเบิดพลังพุ่งทะยาน 220 km/h!
+        isNitroBoosting = true;
+        speed = 220;
+        document.getElementById('hudSpeed').innerText = '220 KM/H';
         score++;
         updateHud();
+        AudioEngine.nitroBoost();
+
+        // แฟลชสีฟ้าสว่างวาบ
+        const fl = document.getElementById('flashOverlay');
+        fl.style.background = 'rgba(56, 189, 248, 0.45)';
+        fl.style.opacity = '1';
+        setTimeout(() => { fl.style.opacity = '0'; }, 400);
+
       } else {
+        // ไนโตรปลอม ควันรั่ว ความเร็วตก
         AudioEngine.crash();
+        speed = 60;
+        document.getElementById('hudSpeed').innerText = '60 KM/H';
         lives = Math.max(0, lives - 1);
         updateHud();
       }
 
       setTimeout(() => {
+        isNitroBoosting = false;
+        speed = 120;
+        document.getElementById('hudSpeed').innerText = '120 KM/H';
+
         if (currentStep + 1 < missions.length && lives > 0) {
           currentStep++;
           isLocked = false;
           updateHud();
-          spawnAnswerCars();
+          spawnNitroAnswers();
         } else {
           concludeRace();
         }
-      }, isCorrect ? 800 : 2000);
+      }, isCorrect ? 1500 : 2000);
     }
 
     function steer(dir) {
-      if (isLocked) return;
-      if (dir === 'left' && targetLane > 0) { targetLane--; AudioEngine.steer(); }
-      if (dir === 'right' && targetLane < 2) { targetLane++; AudioEngine.steer(); }
+      if (isLocked || isSpinning) return;
+      if (dir === 'left' && targetLane > 0) { targetLane--; AudioEngine.steer(); rotateWheel(-30); }
+      if (dir === 'right' && targetLane < 2) { targetLane++; AudioEngine.steer(); rotateWheel(30); }
     }
 
-    // ตัวควบคุมพวงมาลัยซ้าย-ขวา
-    document.getElementById('steerHalfL').addEventListener('pointerdown', (e) => { e.preventDefault(); steer('left'); });
-    document.getElementById('steerHalfR').addEventListener('pointerdown', (e) => { e.preventDefault(); steer('right'); });
+    function rotateWheel(deg) {
+      const w = document.getElementById('steerWheel');
+      w.style.transform = `rotate(${deg}deg)`;
+      setTimeout(() => { w.style.transform = 'rotate(0deg)'; }, 150);
+    }
 
-    // คีย์บอร์ด
+    document.getElementById('steerL').addEventListener('pointerdown', (e) => { e.preventDefault(); steer('left'); });
+    document.getElementById('steerR').addEventListener('pointerdown', (e) => { e.preventDefault(); steer('right'); });
+
     window.addEventListener('keydown', (e) => {
       if (e.key === 'a' || e.key === 'ArrowLeft') steer('left');
       if (e.key === 'd' || e.key === 'ArrowRight') steer('right');
     });
 
-    // แป้นคันเร่ง-เบรก-ไนตรัส
-    document.getElementById('btnGas').addEventListener('pointerdown', () => { speed = 165; document.getElementById('hudSpeedBox').innerText = '165 KM/H'; });
-    document.getElementById('btnGas').addEventListener('pointerup', () => { speed = 120; document.getElementById('hudSpeedBox').innerText = '120 KM/H'; });
-    document.getElementById('btnBrake').addEventListener('pointerdown', () => { speed = 80; document.getElementById('hudSpeedBox').innerText = '80 KM/H'; });
-    document.getElementById('btnBrake').addEventListener('pointerup', () => { speed = 120; document.getElementById('hudSpeedBox').innerText = '120 KM/H'; });
-    document.getElementById('btnNitro').addEventListener('pointerdown', () => { 
-      speed = 220; 
-      document.getElementById('hudSpeedBox').innerText = '220 KM/H';
-      AudioEngine.beep(650, 0.3, 'sawtooth');
-    });
-    document.getElementById('btnNitro').addEventListener('pointerup', () => { speed = 120; document.getElementById('hudSpeedBox').innerText = '120 KM/H'; });
+    document.getElementById('btnGas').addEventListener('pointerdown', () => { if(!isNitroBoosting) { speed = 150; document.getElementById('hudSpeed').innerText = '150 KM/H'; } });
+    document.getElementById('btnGas').addEventListener('pointerup', () => { if(!isNitroBoosting) { speed = 120; document.getElementById('hudSpeed').innerText = '120 KM/H'; } });
+    document.getElementById('btnBrake').addEventListener('pointerdown', () => { if(!isNitroBoosting) { speed = 70; document.getElementById('hudSpeed').innerText = '70 KM/H'; } });
+    document.getElementById('btnBrake').addEventListener('pointerup', () => { if(!isNitroBoosting) { speed = 120; document.getElementById('hudSpeed').innerText = '120 KM/H'; } });
 
     function updateHud() {
       const m = missions[currentStep];
@@ -844,10 +852,10 @@
       document.getElementById('topicTag').innerText = `CHECKPOINT ${m.id} // ${m.topic}`;
       document.getElementById('promptText').innerText = m.q;
 
-      const bars = document.querySelectorAll('.hp-bar');
-      bars.forEach((b, idx) => {
-        if (idx < lives) b.classList.remove('lost');
-        else b.classList.add('lost');
+      const notches = document.querySelectorAll('.hp-notch');
+      notches.forEach((n, idx) => {
+        if (idx < lives) n.classList.remove('depleted');
+        else n.classList.add('depleted');
       });
     }
 
@@ -867,9 +875,10 @@
       lives = 3;
       speed = 120;
       isLocked = false;
+      isSpinning = false;
       isRunning = true;
       updateHud();
-      spawnAnswerCars();
+      spawnNitroAnswers();
       gameLoop();
     }
 
