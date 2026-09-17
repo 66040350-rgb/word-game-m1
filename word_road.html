@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Word Road Mission - Pro Edition (E1)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Kanit:wght@300;400;600;700&display=swap');
+
+    :root {
+      --primary-word: #005a9e;
+      --primary-dark: #002d50;
+      --accent-neon: #00d2d3;
+      --gold-star: #ff9f43;
+      --hud-bg: #101924;
+      --canvas-bg: #0b131f;
+      --success: #10ac84;
+      --danger: #ee5253;
+      --paper-color: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      touch-action: manipulation;
+      font-family: 'Kanit', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at center, #1b2838 0%, #080d14 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px;
+      overflow-x: hidden;
+      color: #f1f2f6;
+    }
+
+    /* กล่องเครื่องเล่นหลัก (Gaming Chassis) */
+    .game-console {
+      width: 100%;
+      max-width: 680px;
+      background: var(--hud-bg);
+      border-radius: 24px;
+      overflow: hidden;
+      border: 2px solid #22374e;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 90, 158, 0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HUD ด้านบน */
+    .hud-header {
+      background: linear-gradient(90deg, #07101a, #132337);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #1e354d;
+      font-family: 'Chakra Petch', sans-serif;
+    }
+
+    .hud-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-neon);
+    }
+
+    .hud-metrics {
+      display: flex;
+      gap: 10px;
+    }
+
+    .badge-metric {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid #294769;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* พื้นที่ Canvas Road Engine */
+    .viewport-canvas {
+      width: 100%;
+      height: 125px;
+      background: var(--canvas-bg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* พื้นที่กลไกเกม */
+    .mission-viewport {
+      padding: 20px;
+      min-height: 440px;
+      background: #f8fafc;
+      color: #2d3436;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-top: 3px solid #005a9e;
+      transition: background 0.3s;
+    }
+
+    .stage-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #e1f0fa;
+      color: var(--primary-word);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .station-heading {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #1e293b;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .briefing-card {
+      font-size: 0.95rem;
+      color: #64748b;
+      margin-bottom: 16px;
+      line-height: 1.45;
+    }
+
+    /* ภารกิจที่ 1 & 3: Word Ribbon Simulator */
+    .sim-ribbon-window {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .ribbon-tabs {
+      background: #f1f5f9;
+      display: flex;
+      padding: 6px 8px 0;
+      gap: 4px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+
+    .tab-item {
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .tab-item.active {
+      background: #ffffff;
+      color: var(--primary-word);
+      border: 1px solid #cbd5e1;
+      border-bottom-color: #ffffff;
+    }
+
+    .ribbon-toolbar {
+      padding: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: #ffffff;
+      min-height: 52px;
+    }
+
+    .sim-tool-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.05rem;
+      transition: all 0.15s;
+    }
+    .sim-tool-btn:active, .sim-tool-btn.pressed {
+      background: #005a9e;
+      color: #ffffff;
+      border-color: #004578;
+      transform: scale(0.95);
+    }
+
+    .paper-canvas {
+      margin: 10px;
+      padding: 14px;
+      background: var(--paper-color);
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      min-height: 75px;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    /* ภารกิจ Drag & Drop แตะหยอด */
+    .drag-interactive-rack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .magnetic-slot {
+      border: 2px dashed #3b82f6;
+      background: #eff6ff;
+      border-radius: 14px;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: #60a5fa;
+      padding: 8px;
+      transition: all 0.2s;
+    }
+    .magnetic-slot.snapped {
+      border-style: solid;
+      border-color: #10b981;
+      background: #ecfdf5;
+      color: #065f46;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .tokens-source {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .token-chip {
+      background: #ffffff;
+      border: 2px solid #94a3b8;
+      border-bottom: 4px solid #64748b;
+      padding: 10px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.1s;
+    }
+    .token-chip:active {
+      transform: translateY(3px);
+      border-bottom-width: 1px;
+    }
+    .token-chip.selected {
+      border-color: #005a9e;
+      background: #e0f2fe;
+    }
+
+    /* ภารกิจ Choice กดยิงความเร็ว */
+    .fast-options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .tactile-btn {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-bottom: 4px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1e293b;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s;
+    }
+    .tactile-btn:active {
+      transform: translateY(2px);
+      border-bottom-width: 2px;
+    }
+    .tactile-btn.success {
+      background: #ecfdf5 !important;
+      border-color: #34d399 !important;
+      color: #065f46 !important;
+    }
+    .tactile-btn.fail {
+      background: #fef2f2 !important;
+      border-color: #f87171 !important;
+      color: #991b1b !important;
+    }
+
+    /* AI Copilot Card พร้อมเอฟเฟกต์ไฟกระพริบ */
+    .ai-copilot-module {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.88rem;
+      border-left: 4px solid var(--accent-neon);
+      animation: pulseTerminal 1.5s infinite alternate;
+    }
+    .ai-copilot-module.active {
+      display: flex;
+    }
+    @keyframes pulseTerminal {
+      from { box-shadow: 0 0 5px rgba(0, 210, 211, 0.2); }
+      to { box-shadow: 0 0 14px rgba(0, 210, 211, 0.4); }
+    }
+
+    /* จอสรุปผล Certificate */
+    .certificate-chassis {
+      background: linear-gradient(145deg, #091a2e, #142e4e);
+      border: 2px solid #f6b93b;
+      color: #fff;
+      border-radius: 20px;
+      padding: 24px 20px;
+      text-align: center;
+      position: relative;
+      margin-bottom: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    }
+
+    .btn-warp {
+      background: linear-gradient(90deg, #10ac84, #1dd1a1);
+      color: #fff;
+      border: none;
+      padding: 16px 36px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(29, 209, 161, 0.4);
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-console">
+    <!-- แดชบอร์ดคุมสถานะด้านบน -->
+    <div class="hud-header">
+      <div class="hud-title">
+        <span>⚡ WORD ROAD</span>
+        <span style="font-size: 0.75rem; color: #94a3b8;">// PRO EDITION</span>
+      </div>
+      <div class="hud-metrics">
+        <div class="badge-metric" style="color: var(--accent-neon);">CP: <span id="metricCp">1</span>/12</div>
+        <div class="badge-metric" style="color: var(--gold-star);">⭐ <span id="metricScore">0</span></div>
+        <div class="badge-metric" id="metricHp">❤️❤️❤️</div>
+      </div>
+    </div>
+
+    <!-- Canvas Engine สำหรับถนนและรถ -->
+    <div class="viewport-canvas">
+      <canvas id="roadCanvas"></canvas>
+    </div>
+
+    <!-- ลานภารกิจแบบอินเทอร์แอคทีฟ -->
+    <div class="mission-viewport" id="missionChamber">
+      <div>
+        <div class="stage-indicator" id="stageTypeLabel">🚀 CHECKPOINT MISSION</div>
+        <h2 class="station-heading" id="stationHeadline">เตรียมออกสตาร์ท...</h2>
+        <p class="briefing-card" id="stationBriefing">ระบบกำลังตรวจสอบความพร้อมของระบบขับเคลื่อนและเอกสาร</p>
+
+        <!-- โซนที่คอนเทนต์เปลี่ยนตามด่าน -->
+        <div id="runtimeInteraction"></div>
+      </div>
+
+      <!-- กล่องวิเคราะห์จาก AI ประจำตัวรถ -->
+      <div class="ai-copilot-module" id="aiFeedbackBar">
+        <span style="font-size: 1.3rem;">🤖</span>
+        <div>
+          <div style="font-weight: 700; color: var(--accent-neon); margin-bottom: 2px;">AI Assistant Feedback:</div>
+          <div id="aiFeedbackLog" style="line-height: 1.4;">พร้อมวิเคราะห์ข้อมูลความเข้าใจ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- หน้าต่างใบอนุญาตและผลสัมฤทธิ์ E1 -->
+    <div class="mission-viewport" id="celebrationChamber" style="display: none; text-align: center;">
+      <h2 style="color: #0f172a; margin-bottom: 6px;">🏁 พิชิตครบ 12 Checkpoints!</h2>
+      <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 16px;">ผู้เรียนผ่านการฝึกฝนและประเมินผลระหว่างเรียนเสร็จสิ้น</p>
+
+      <div class="certificate-chassis">
+        <div style="font-size: 0.8rem; letter-spacing: 2px; color: #ff9f43; font-weight: 700;">OFFICIAL CERTIFICATION</div>
+        <h3 style="font-size: 1.6rem; margin: 8px 0; color: #ffffff;">MS WORD ROAD MASTER</h3>
+        <p style="font-size: 0.85rem; color: #94a3b8;">ผลการประเมินประสิทธิภาพระหว่างเรียน (E1)</p>
+        <div style="font-size: 2.8rem; font-weight: 700; color: #1dd1a1; margin: 8px 0;" id="scoreDisplaySummary">12 / 12</div>
+        <div style="font-size: 1rem; color: #f1f2f6;" id="percentageSummary">ประสิทธิภาพ E1 = 100%</div>
+      </div>
+
+      <button class="btn-warp" onclick="alert('เชื่อมต่อไปยังแบบทดสอบรวบยอด Word Jump Game (E2)')">
+        เข้าสู่สนามสอบ Word Jump (E2) 🦘
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. WEB AUDIO API SYNTHESIZER (เสียงในตัว)
+    // ==========================================
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      },
+      beep(freq, duration, type = 'sine') {
+        try {
+          this.init();
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e) {}
+      },
+      playSuccess() {
+        this.beep(523.25, 0.1, 'triangle');
+        setTimeout(() => this.beep(659.25, 0.1, 'triangle'), 100);
+        setTimeout(() => this.beep(783.99, 0.25, 'triangle'), 200);
+      },
+      playFail() {
+        this.beep(220, 0.15, 'sawtooth');
+        setTimeout(() => this.beep(164.81, 0.35, 'sawtooth'), 120);
+      }
+    };
+
+    // ==========================================
+    // 2. CANVAS ROAD ENGINE (แอนิเมชันถนนและรถ)
+    // ==========================================
+    const CanvasEngine = {
+      canvas: document.getElementById('roadCanvas'),
+      ctx: null,
+      offset: 0,
+      carX: 0.1,
+      targetX: 0.1,
+      particles: [],
+
+      init() {
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.render();
+      },
+
+      resize() {
+        this.canvas.width = this.canvas.offsetWidth;
+        this.canvas.height = this.canvas.offsetHeight;
+      },
+
+      render() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // วาดท้องฟ้าและเส้นขอบฟ้า
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+        skyGrad.addColorStop(0, '#091524');
+        skyGrad.addColorStop(0.6, '#13283f');
+        skyGrad.addColorStop(0.61, '#1e3799');
+        skyGrad.addColorStop(1, '#111b27');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // เส้นถนนพุ่งแบบ Perspective
+        ctx.fillStyle = '#222f3e';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.45, h * 0.6);
+        ctx.lineTo(w * 0.55, h * 0.6);
+        ctx.lineTo(w * 0.95, h);
+        ctx.lineTo(w * 0.05, h);
+        ctx.closePath();
+        ctx.fill();
+
+        // เส้นประแบ่งเลนกลางถนน
+        this.offset = (this.offset + 2.5) % 30;
+        ctx.strokeStyle = '#feca57';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([16, 14]);
+        ctx.lineDashOffset = -this.offset;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.5, h * 0.6);
+        ctx.lineTo(w * 0.5, h);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ขยับตำแหน่งรถแบบ Smooth Lerp
+        this.carX += (this.targetX - this.carX) * 0.08;
+        const drawCarX = w * this.carX;
+        const drawCarY = h * 0.76;
+
+        // วาดควันท่อไอเสีย (Particles)
+        if (Math.random() < 0.4) {
+          this.particles.push({
+            x: drawCarX - 10,
+            y: drawCarY + 8,
+            r: 4,
+            alpha: 0.6
+          });
+        }
+
+        ctx.fillStyle = '#8395a7';
+        this.particles.forEach((p, i) => {
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          p.x -= 1.5;
+          p.y -= 0.5;
+          p.r += 0.3;
+          p.alpha -= 0.03;
+          if (p.alpha <= 0) this.particles.splice(i, 1);
+        });
+
+        // ร่างตัวรถทรงสปอร์ตจำลอง
+        ctx.save();
+        ctx.translate(drawCarX, drawCarY);
+        // เงาใต้ท้องรถ
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.beginPath();
+        ctx.ellipse(0, 10, 24, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // บอดี้รถ
+        ctx.fillStyle = '#00d2d3';
+        ctx.roundRect(-22, -10, 44, 18, 6);
+        ctx.fill();
+        // กระจกรถ
+        ctx.fillStyle = '#0a3d62';
+        ctx.roundRect(-8, -8, 20, 8, 3);
+        ctx.fill();
+        // ไฟหน้ารถ
+        ctx.fillStyle = '#fffa65';
+        ctx.fillRect(20, -4, 3, 5);
+        ctx.restore();
+
+        requestAnimationFrame(() => this.render());
+      },
+
+      setCarProgress(ratio) {
+        this.targetX = 0.1 + (ratio * 0.78);
+      }
+    };
+
+    // ==========================================
+    // 3. ฐานข้อมูล 12 ด่าน พร้อมระบบคำถามแบบผสม
+    // ==========================================
+    const checkpoints = [
+      {
+        cp: 1,
+        mode: "ribbon",
+        title: "รู้จักแถบเครื่องมือ Ribbon",
+        brief: "แตะเลือก 'แท็บเมนู' ด้านบนที่ใช้สำหรับการเพิ่ม รูปภาพ และ ตาราง ลงในเอกสาร",
+        tabs: ["Home", "Insert", "Layout", "View"],
+        targetTab: "Insert",
+        hint: "แท็บ Insert (แทรก) คือหมวดหมู่ที่รวบรวมคำสั่งสำหรับเพิ่มองค์ประกอบภายนอกทั้งหมด"
+      },
+      {
+        cp: 2,
+        mode: "drag",
+        title: "Save Station (เซฟงานฉุกเฉิน)",
+        brief: "ลากหรือแตะคีย์ลัดที่ถูกต้องเพื่อ Save ข้อมูลก่อนระบบตัดไฟ",
+        slotText: "นำคีย์ลัดบันทึกงานมาใส่ที่นี่",
+        tokens: ["Ctrl + Z", "Ctrl + S", "Ctrl + C"],
+        answer: "Ctrl + S",
+        hint: "Ctrl + S ย่อมาจาก Save ใช้สำหรับบันทึกงานลงในแฟ้มเอกสาร"
+      },
+      {
+        cp: 3,
+        mode: "format_bold",
+        title: "Format Garage (เน้นหัวข้อตัวหนา)",
+        brief: "เปิดใช้งานปุ่มสัญลักษณ์บนแถบเครื่องมือ เพื่อทำให้ข้อความตัวอย่างกลายเป็น 'ตัวหนา'",
+        targetAction: "bold",
+        hint: "ปุ่ม B (Bold) ทำหน้าที่เพิ่มความหนาให้กับตัวหนังสือเพื่อเน้นความสำคัญ"
+      },
+      {
+        cp: 4,
+        mode: "choice",
+        title: "สะพานความเร็ว (ขีดเส้นใต้)",
+        brief: "ต้องการขีดเส้นใต้ข้อความสำคัญเพื่อเน้นย้ำ ต้องกดคำสั่งใด?",
+        options: ["ปุ่ม B (Bold)", "ปุ่ม I (Italic)", "ปุ่ม U (Underline)", "ปุ่ม Strikethrough"],
+        answer: 2,
+        hint: "ปุ่ม U ย่อมาจาก Underline มีขีดเส้นใต้กำกับที่ตัวอักษรชัดเจน"
+      },
+      {
+        cp: 5,
+        mode: "format_align",
+        title: "จัดตำแหน่งย่อหน้ากึ่งกลาง",
+        brief: "แตะปุ่มจัดตำแหน่งเพื่อวางหัวข้อรายงานให้อยู่ 'กึ่งกลางหน้ากระดาษ'",
+        targetAction: "center",
+        hint: "คำสั่ง Center (หรือกดปุ่มคีย์ลัด Ctrl + E) ช่วยให้หัวข้ออยู่กึ่งกลางสมดุล"
+      },
+      {
+        cp: 6,
+        mode: "choice",
+        title: "ด่านตรวจขั้นตอนจราจร",
+        brief: "การพิมพ์รายการข้อปฏิบัติที่มีขั้นตอน 1, 2, 3 ตามลำดับ ควรเลือกใช้เครื่องมือใด?",
+        options: ["Bullets (หัวข้อย่อย)", "Numbering (ลำดับเลข)", "Shapes (รูปร่าง)", "Columns (คอลัมน์)"],
+        answer: 1,
+        hint: "เมื่อเนื้อหามีลำดับขั้นตอนก่อน-หลังที่แน่นอน ให้เลือก Numbering เสมอ"
+      },
+      {
+        cp: 7,
+        mode: "drag",
+        title: "แทรกภาพถ่ายเข้าสู่หน้ากระดาษ",
+        brief: "นำชื่อแท็บที่ใช้แทรกรูปภาพจากอุปกรณ์เข้าสู่เอกสารมาวางในช่องว่าง",
+        slotText: "แตะวางชื่อแท็บที่ถูกต้อง",
+        tokens: ["Home", "Insert", "References"],
+        answer: "Insert",
+        hint: "คำสั่ง Pictures บรรจุอยู่ภายใต้แท็บ Insert"
+      },
+      {
+        cp: 8,
+        mode: "choice",
+        title: "เมืองตาราง (Table Town)",
+        brief: "ต้องการรวมช่องเซลล์ตาราง 2 ช่องให้กลายเป็นช่องเดียวกัน ต้องใช้คำสั่งใด?",
+        options: ["Split Cells", "Merge Cells", "Delete Cells", "Insert Row"],
+        answer: 1,
+        hint: "Merge Cells คือคำสั่งสำหรับผสานเซลล์ที่เลือกเข้าด้วยกัน"
+      },
+      {
+        cp: 9,
+        mode: "drag",
+        title: "ตั้งค่ากระดาษแนวนอน",
+        brief: "เลือกคำสั่งในแท็บ Layout ที่ใช้ปรับกระดาษเป็นแนวนอน (Landscape)",
+        slotText: "วางคำสั่งกำหนดแนวกระดาษ",
+        tokens: ["Margins", "Orientation", "Size"],
+        answer: "Orientation",
+        hint: "Orientation ทำหน้าที่กำหนดทิศทางการวางหน้ากระดาษ (แนวตั้ง/แนวนอน)"
+      },
+      {
+        cp: 10,
+        mode: "choice",
+        title: "ตรวจสภาพคำสะกดผิด",
+        brief: "เส้นใต้หยัก 'สีแดง' ใต้ข้อความ มีความหมายตรงกับข้อใด?",
+        options: ["เว้นวรรคผิดพลาด", "สะกดคำผิด (Spelling)", "การจัดรูปแบบขัดแย้ง", "ฟอนต์ไม่รองรับ"],
+        answer: 1,
+        hint: "เส้นหยักสีแดงจะแจ้งเตือนคำที่สะกดไม่ถูกต้องตามพจนานุกรม"
+      },
+      {
+        cp: 11,
+        mode: "drag",
+        title: "คีย์ลัดสั่งพิมพ์ด่วน (Print)",
+        brief: "นำคีย์ลัดสำหรับเปิดหน้าต่าง Print งานออกเครื่องพิมพ์มาหยอดลงในช่อง",
+        slotText: "วางคีย์ลัดคำสั่งพิมพ์",
+        tokens: ["Ctrl + O", "Ctrl + P", "Ctrl + D"],
+        answer: "Ctrl + P",
+        hint: "Ctrl + P ย่อมาจาก Print ใช้เปิดหน้าต่างพิมพ์เอกสาร"
+      },
+      {
+        cp: 12,
+        mode: "choice",
+        title: "ภารกิจประยุกต์ส่งออกไฟล์",
+        brief: "ต้องการส่งเอกสารให้อาจารย์โดยล็อกการจัดหน้าและฟอนต์ไม่ให้เพี้ยน ควรส่งออกเป็นไฟล์ใด?",
+        options: [".txt", ".docx", ".pdf", ".rtf"],
+        answer: 2,
+        hint: "ไฟล์ .pdf เป็นมาตรฐานเอกสารคงรูปที่การจัดหน้าจะไม่ขยับเลื่อนเมื่อเปิดต่างอุปกรณ์"
+      }
+    ];
+
+    // ==========================================
+    // 4. GAME STATE CONTROLLER
+    // ==========================================
+    let currentIdx = 0;
+    let score = 0;
+    let lives = 3;
+    let isProcessing = false;
+
+    const metricCp = document.getElementById('metricCp');
+    const metricScore = document.getElementById('metricScore');
+    const metricHp = document.getElementById('metricHp');
+    const stationHeadline = document.getElementById('stationHeadline');
+    const stationBriefing = document.getElementById('stationBriefing');
+    const runtimeInteraction = document.getElementById('runtimeInteraction');
+    const aiFeedbackBar = document.getElementById('aiFeedbackBar');
+    const aiFeedbackLog = document.getElementById('aiFeedbackLog');
+
+    function initGameEngine() {
+      CanvasEngine.init();
+      loadCheckpoint();
+    }
+
+    function loadCheckpoint() {
+      isProcessing = false;
+      aiFeedbackBar.classList.remove('active');
+
+      const data = checkpoints[currentIdx];
+      metricCp.innerText = data.cp;
+      metricScore.innerText = score;
+      metricHp.innerText = "❤️".repeat(Math.max(0, lives));
+
+      CanvasEngine.setCarProgress(currentIdx / (checkpoints.length - 1));
+
+      stationHeadline.innerText = `ด่านที่ ${data.cp}: ${data.title}`;
+      stationBriefing.innerText = data.brief;
+      runtimeInteraction.innerHTML = '';
+
+      // จัดการสร้างอินเตอร์เฟซตามประเภทด่าน
+      if (data.mode === "ribbon") {
+        buildRibbonInterface(data);
+      } else if (data.mode === "drag") {
+        buildMagneticDropInterface(data);
+      } else if (data.mode.startsWith("format")) {
+        buildWordSimulator(data);
+      } else {
+        buildChoiceInterface(data);
+      }
+    }
+
+    // A. ตัวจำลองแท็บ Ribbon
+    function buildRibbonInterface(data) {
+      const win = document.createElement('div');
+      win.className = 'sim-ribbon-window';
+
+      const tabBox = document.createElement('div');
+      tabBox.className = 'ribbon-tabs';
+
+      data.tabs.forEach(tabName => {
+        const t = document.createElement('div');
+        t.className = 'tab-item';
+        t.innerText = tabName;
+        t.onclick = () => {
+          if (isProcessing) return;
+          t.classList.add('active');
+          if (tabName === data.targetTab) {
+            triggerResult(true, data.hint);
+          } else {
+            triggerResult(false, data.hint);
+          }
+        };
+        tabBox.appendChild(t);
+      });
+
+      const body = document.createElement('div');
+      body.className = 'ribbon-toolbar';
+      body.innerHTML = `<span style="font-size: 0.85rem; color:#94a3b8;">คลิกเลือกแท็บด้านบนเพื่อเปิดชุดคำสั่ง</span>`;
+
+      win.appendChild(tabBox);
+      win.appendChild(body);
+      runtimeInteraction.appendChild(win);
+    }
+
+    // B. ตัวลากหยอดแม่เหล็ก (แตะบนมือถือได้ / ลากบนคอมได้)
+    function buildMagneticDropInterface(data) {
+      const rack = document.createElement('div');
+      rack.className = 'drag-interactive-rack';
+
+      const slot = document.createElement('div');
+      slot.className = 'magnetic-slot';
+      slot.innerText = data.slotText;
+      slot.ondragover = (e) => e.preventDefault();
+      slot.ondrop = (e) => {
+        e.preventDefault();
+        const val = e.dataTransfer.getData("text");
+        handleSlotFill(val, data, slot);
+      };
+
+      const tokensArea = document.createElement('div');
+      tokensArea.className = 'tokens-source';
+
+      data.tokens.forEach(tok => {
+        const chip = document.createElement('div');
+        chip.className = 'token-chip';
+        chip.innerText = tok;
+        chip.draggable = true;
+
+        chip.ondragstart = (e) => e.dataTransfer.setData("text", tok);
+        chip.onclick = () => {
+          // แตะหยอดอัตโนมัติเมื่อเล่นบนมือถือ/ไอแพด
+          handleSlotFill(tok, data, slot);
+        };
+        tokensArea.appendChild(chip);
+      });
+
+      rack.appendChild(slot);
+      rack.appendChild(tokensArea);
+      runtimeInteraction.appendChild(rack);
+    }
+
+    function handleSlotFill(val, data, slot) {
+      if (isProcessing) return;
+      slot.innerText = val;
+      slot.classList.add('snapped');
+      triggerResult(val === data.answer, data.hint);
+    }
+
+    // C. ตัวจำลองหน้าต่าง Word ปรับแต่งสด
+    function buildWordSimulator(data) {
+      const wrap = document.createElement('div');
+      wrap.className = 'sim-ribbon-window';
+
+      const bar = document.createElement('div');
+      bar.className = 'ribbon-toolbar';
+
+      const btnB = document.createElement('button');
+      btnB.className = 'sim-tool-btn';
+      btnB.innerText = 'B';
+
+      const btnAlign = document.createElement('button');
+      btnAlign.className = 'sim-tool-btn';
+      btnAlign.innerText = '≡';
+
+      bar.appendChild(btnB);
+      bar.appendChild(btnAlign);
+
+      const paper = document.createElement('div');
+      paper.className = 'paper-canvas';
+      paper.innerText = 'หัวข้อรายงาน: เทคโนโลยีและการประยุกต์ใช้';
+
+      btnB.onclick = () => {
+        btnB.classList.toggle('pressed');
+        paper.style.fontWeight = btnB.classList.contains('pressed') ? '700' : '400';
+        if (data.targetAction === "bold") triggerResult(true, data.hint);
+      };
+
+      btnAlign.onclick = () => {
+        btnAlign.classList.toggle('pressed');
+        paper.style.textAlign = btnAlign.classList.contains('pressed') ? 'center' : 'left';
+        if (data.targetAction === "center") triggerResult(true, data.hint);
+      };
+
+      wrap.appendChild(bar);
+      wrap.appendChild(paper);
+      runtimeInteraction.appendChild(wrap);
+    }
+
+    // D. ระบบกดเลือกชอยส์ Tactile
+    function buildChoiceInterface(data) {
+      const grid = document.createElement('div');
+      grid.className = 'fast-options-grid';
+
+      data.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'tactile-btn';
+        btn.innerHTML = `<span><strong>${String.fromCharCode(65 + idx)}.</strong> ${opt}</span> <span>⚡</span>`;
+        btn.onclick = () => {
+          if (isProcessing) return;
+          if (idx === data.answer) {
+            btn.classList.add('success');
+            triggerResult(true, data.hint);
+          } else {
+            btn.classList.add('fail');
+            triggerResult(false, data.hint);
+          }
+        };
+        grid.appendChild(btn);
+      });
+
+      runtimeInteraction.appendChild(grid);
+    }
+
+    // ==========================================
+    // 5. EVALUATION & FEEDBACK ENGINE
+    // ==========================================
+    function triggerResult(isSuccess, hint) {
+      isProcessing = true;
+
+      if (isSuccess) {
+        AudioEngine.playSuccess();
+        score++;
+        metricScore.innerText = score;
+        setTimeout(stepNext, 900);
+      } else {
+        AudioEngine.playFail();
+        lives = Math.max(0, lives - 1);
+        metricHp.innerText = "❤️".repeat(lives);
+
+        // AI วิเคราะห์และให้คำชี้แนะทันที
+        aiFeedbackLog.innerText = hint;
+        aiFeedbackBar.classList.add('active');
+
+        // ให้เวลาอ่านคำแนะนำ 2 วินาทีก่อนขับรถต่อ
+        setTimeout(stepNext, 2200);
+      }
+    }
+
+    function stepNext() {
+      if (currentIdx + 1 < checkpoints.length) {
+        currentIdx++;
+        loadCheckpoint();
+      } else {
+        concludeMission();
+      }
+    }
+
+    function concludeMission() {
+      document.getElementById('missionChamber').style.display = 'none';
+      document.getElementById('celebrationChamber').style.display = 'block';
+
+      const total = checkpoints.length;
+      const pct = ((score / total) * 100).toFixed(2);
+
+      document.getElementById('scoreDisplaySummary').innerText = `${score} / ${total}`;
+      document.getElementById('percentageSummary').innerText = `ประสิทธิภาพ E1 = ${pct}%`;
+    }
+
+    // เริ่มระบบเมื่อเอกสารพร้อม
+    window.onload = () => initGameEngine();
+  </script>
+</body>
+</html>
