@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Hunter Cyber Mission - Perfect Edition</title>
+  <title>Hunter Cyber Mission - Word Jump</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * {
@@ -35,6 +35,897 @@
       border: 2px solid rgba(255, 117, 143, 0.4);
       border-radius: 28px;
       padding: clamp(16px, 3.5vw, 24px);
+      max-width: 480px;
+      width: min(90%, 480px);
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 117, 143, 0.2);
+      backdrop-filter: blur(20px);
+      max-height: 88dvh;
+      overflow-y: auto;
+      z-index: 100;
+      position: relative;
+      color: #0f172a;
+    }
+    h1 {
+      color: #e01e37;
+      margin: 0 0 6px 0;
+      font-size: clamp(20px, 5vw, 26px);
+      letter-spacing: 0.5px;
+      font-weight: 900;
+    }
+    h2 {
+      color: #e01e37;
+      font-weight: 800;
+      font-size: clamp(18px, 4.5vw, 22px);
+      margin: 0 0 10px 0;
+    }
+    .btn {
+      background: linear-gradient(135deg, #ff758f 0%, #ff4d6d 100%);
+      color: white;
+      border: none;
+      padding: 13px;
+      border-radius: 18px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      margin: 8px 0;
+      box-shadow: 0 8px 20px rgba(255, 77, 109, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn svg { width: 20px; height: 20px; fill: white; }
+
+    .btn-sweet-green {
+      background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.35);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-sweet-green:active { transform: scale(0.97); }
+    .btn-sweet-green svg { width: 20px; height: 20px; fill: white; }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      margin: 5px 0 10px 0;
+      border-radius: 16px;
+      border: 2px solid #ffccd5;
+      background: #fff5f7;
+      color: #e01e37;
+      text-align: center;
+      font-size: 15px;
+      font-weight: bold;
+      outline: none;
+      user-select: auto;
+      -webkit-user-select: auto;
+      transition: all 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: #ff4d6d;
+      background: #ffffff;
+      box-shadow: 0 0 0 4px rgba(255, 77, 109, 0.15);
+    }
+    .pin-display {
+      font-size: clamp(32px, 8vw, 42px);
+      letter-spacing: 6px;
+      font-weight: 900;
+      color: #e01e37;
+      background: #ffe4e6;
+      padding: 6px;
+      border-radius: 18px;
+      margin: 8px 0;
+      border: 2.5px dashed #ff758f;
+    }
+    .qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #fff;
+      padding: 12px;
+      border-radius: 18px;
+      width: fit-content;
+      margin: 8px auto;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      border: 1px solid #ffe4e6;
+    }
+    .badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin: 8px 0;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+    .badge-player {
+      background: #ffe4e6;
+      border: 1.5px solid #ff758f;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: #e01e37;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(255, 117, 143, 0.2);
+    }
+    .badge-kick-btn {
+      background: #e11d48;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 10px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+    .hidden { display: none !important; }
+
+    /* สไตล์กล่องอธิบายวิธีเล่นสำหรับเด็ก */
+    .instruction-card {
+      background: #f0fdf4;
+      border: 2px solid #bbf7d0;
+      border-radius: 20px;
+      padding: 14px;
+      margin: 12px 0;
+      text-align: left;
+    }
+    .instruction-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #166534;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .instruction-item:last-child { margin-bottom: 0; }
+    .instruction-item svg { width: 22px; height: 22px; fill: #059669; flex-shrink: 0; margin-top: 1px; }
+
+    #teacher-auth-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+      padding: 16px;
+    }
+    .teacher-auth-card {
+      background: rgba(255, 255, 255, 0.98);
+      border: 2px solid rgba(255, 117, 143, 0.5);
+      border-radius: 24px;
+      padding: 24px 20px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+      color: #0f172a;
+    }
+
+    #view-host-live {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #090d16 100%);
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      padding: 14px;
+      overflow: hidden;
+      gap: 10px;
+    }
+    .host-header-card {
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 12px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .host-leader-bar {
+      background: linear-gradient(90deg, rgba(245, 158, 11, 0.18) 0%, rgba(251, 191, 36, 0.05) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      padding: 10px 18px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      flex-shrink: 0;
+    }
+    .host-table-wrapper {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 8px 12px;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.4);
+    }
+
+    #game-wrapper {
+      position: fixed;
+      inset: 0;
+      background: #e0f2fe;
+      overflow: hidden;
+      z-index: 50;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .game-top-bar {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(95%, 480px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+      z-index: 70;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      border: 2px solid rgba(255, 117, 143, 0.45);
+      border-radius: 30px;
+      padding: 6px 10px;
+      box-shadow: 0 10px 25px rgba(255, 117, 143, 0.18);
+    }
+    .stat-pill {
+      background: #ffffff;
+      border: 1.5px solid #ffccd5;
+      padding: 5px 8px;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: 12px;
+      color: #0f172a;
+      white-space: nowrap;
+    }
+    .btn-top-quiz {
+      background: linear-gradient(135deg, #ff758f, #ff4d6d);
+      border: 1.5px solid #ffffff;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 16px;
+      font-weight: 900;
+      font-size: 12px;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+    .btn-music-toggle {
+      background: #ffffff;
+      border: 1.5px solid #bae6fd;
+      border-radius: 16px;
+      padding: 5px 8px;
+      font-size: 13px;
+      cursor: pointer;
+      pointer-events: auto;
+    }
+
+    .controls-bar {
+      position: absolute;
+      bottom: 16px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      z-index: 80;
+      pointer-events: none;
+    }
+    .touch-dpad-container {
+      background: rgba(255, 255, 255, 0.85);
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      border-radius: 32px;
+      padding: 6px;
+      display: flex;
+      gap: 8px;
+      pointer-events: auto;
+    }
+    .touch-btn-arrow {
+      width: 65px;
+      height: 65px;
+      border-radius: 20px;
+      background: #ffffff;
+      border: 2px solid #bae6fd;
+      color: #0284c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .touch-btn-jump {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+      border: 3px solid #ffffff;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 32px;
+      pointer-events: auto;
+    }
+
+    #toast-msg {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.94);
+      color: white;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      z-index: 250;
+      opacity: 0;
+      transition: opacity 0.25s;
+      pointer-events: none;
+    }
+    #toast-msg.show { opacity: 1; }
+
+    #quiz-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 14px;
+    }
+    .quiz-card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 440px;
+      border: 2.5px solid #ff758f;
+      text-align: center;
+    }
+    .quiz-option {
+      background: #fff5f7;
+      border: 1.5px solid #ffccd5;
+      color: #e01e37;
+      padding: 10px 14px;
+      border-radius: 14px;
+      width: 100%;
+      margin: 6px 0;
+      cursor: pointer;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+    }
+  </style>
+  <script>
+    window.switchScreen = function(id) {
+      ['view-mode', 'view-host', 'view-host-live', 'view-join', 'view-waiting', 'game-wrapper', 'view-result', 'view-instruction'].forEach(function(v) {
+        var el = document.getElementById(v);
+        if (el) el.classList.add('hidden');
+      });
+      var target = document.getElementById(id);
+      if (target) target.classList.remove('hidden');
+    };
+  </script>
+</head>
+<body>
+
+  <div id="toast-msg">แจ้งเตือน</div>
+
+  <div id="teacher-auth-modal" class="hidden">
+    <div class="teacher-auth-card">
+      <h3 style="margin: 0 0 6px 0; font-size: 18px; color: #e01e37; font-weight: 900;">ยืนยันตัวตนผู้สอน</h3>
+      <p style="font-size: 12px; color: #64748b; margin: 0 0 14px 0;">กรุณากรอกรหัสผ่าน (เริ่มต้น: 1234)</p>
+      <input type="password" id="input-teacher-pwd" placeholder="รหัสผ่านคุณครู..." maxlength="10">
+      <div style="display: flex; gap: 8px;">
+        <button class="btn" style="background: #94a3b8; margin: 0;" onclick="closeTeacherModal()">ยกเลิก</button>
+        <button class="btn btn-sweet-green" style="margin: 0;" onclick="verifyTeacherPassword()">เข้าสู่ระบบ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- หน้าแรกเลือกโหมด (ไร้อิโมจิ ใช้ SVG) -->
+  <div id="view-mode" class="container">
+    <h1>WORD JUMP GAME</h1>
+    <p style="color: #64748b; font-size:14px; margin-bottom: 20px;">เกมตอบคำถามชิงความสูง Microsoft Word</p>
+    
+    <button class="btn" onclick="openTeacherModal()">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+      คุณครู / ผู้สอน (Host)
+    </button>
+    
+    <button class="btn btn-sweet-green" onclick="switchScreen('view-instruction')">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      วิธีเล่นเกม (How to Play)
+    </button>
+
+    <button class="btn" style="background:#475569;" onclick="switchScreen('view-join')">
+      <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      นักเรียน / ผู้เรียน (Join)
+    </button>
+
+    <button class="btn" style="background:#64748b; margin-top:14px;" onclick="location.href='index.html'">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      กลับหน้าหลัก (Hub)
+    </button>
+  </div>
+
+  <!-- หน้าจอคำอธิบายวิธีเล่นสำหรับเด็ก -->
+  <div id="view-instruction" class="container hidden">
+    <h2>วิธีการเล่นเกมกระโดด</h2>
+    
+    <div class="instruction-card">
+      <div class="instruction-item">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        <span><b>ควบคุมตัวละคร:</b> ใช้ปุ่มลูกศรซ้าย/ขวา (◄ ►) เพื่อเคลื่อนที่ และปุ่มขึ้น (▲) เพื่อกระโดดขึ้นที่สูง</span>
+      </div>
+      <div class="instruction-item">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        <span><b>พลังงาน (⚡):</b> การกระโดดแต่ละครั้งจะใช้พลังงาน เมื่อพลังงานหมดจะต้องตอบคำถามเพื่อชาร์จพลังงานเพิ่ม</span>
+      </div>
+      <div class="instruction-item">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        <span><b>ตอบคำถาม:</b> กดปุ่มคำถามด้านบนเพื่อทดสอบความรู้ Microsoft Word และสะสมแต้มความสูงชิงอันดับ 1</span>
+      </div>
+    </div>
+
+    <button class="btn btn-sweet-green" onclick="switchScreen('view-mode')">เข้าใจแล้ว กลับหน้าหลัก</button>
+  </div>
+
+  <div id="view-host" class="container hidden">
+    <h2>ห้องควบคุมโฮสต์</h2>
+    <p style="margin-bottom:2px; font-size:13px; color:#64748b;">รหัสเข้าห้อง (Room PIN):</p>
+    <div id="host-pin" class="pin-display">------</div>
+    <div class="qr-container"><div id="qrcode"></div></div>
+    <button class="btn" id="btn-copy-link" style="padding:9px; font-size:12px;">คัดลอกลิงก์ส่งให้นักเรียน</button>
+    
+    <div style="text-align: left; margin-top: 6px;">
+      <label style="color:#64748b; font-size:13px; font-weight:bold;">ค่าพลังงานเริ่มต้น:</label>
+      <select id="select-energy">
+        <option value="5" selected>5 พลังงาน</option>
+        <option value="10">10 พลังงาน</option>
+      </select>
+      <label style="color:#64748b; font-size:13px; font-weight:bold;">ระยะเวลาแข่งขัน:</label>
+      <select id="select-duration">
+        <option value="3" selected>3 นาที</option>
+        <option value="5">5 นาที</option>
+      </select>
+    </div>
+
+    <p style="margin: 10px 0 4px 0; font-size:13px; color:#64748b;">ผู้เล่นในห้อง (<span id="player-count">0</span> คน):</p>
+    <div id="host-players" class="badge-list"></div>
+    <button id="btn-start" class="btn btn-sweet-green" disabled>เริ่มการแข่งขัน</button>
+  </div>
+
+  <div id="view-host-live" class="hidden">
+    <div class="host-header-card">
+      <button onclick="location.reload()" style="padding: 7px 12px; background: #334155; color: white; border: none; border-radius: 12px; cursor: pointer;">ออกจากห้อง</button>
+      <div style="font-size: 16px; font-weight: 900; color: #fb7185;">HOST DASHBOARD</div>
+      <div id="host-timer-text" style="font-family: monospace; font-size: 17px; color: #fde047; font-weight: 900;">03:00</div>
+    </div>
+    <div class="host-leader-bar">
+      <div style="font-size: 15px; font-weight: 900; color: white;">ผู้นำอันดับ 1: <span id="leader-name">รอเริ่มเกม...</span></div>
+      <div id="leader-meters" style="font-size: 18px; font-weight: 900; color: #facc15;">0 m</div>
+    </div>
+    <div class="host-table-wrapper">
+      <table style="width:100%; text-align:left; color:#fff; font-size:13px;">
+        <thead>
+          <tr style="border-bottom:1px solid #334155;">
+            <th style="padding:8px;">ชื่อ</th>
+            <th style="text-align:center;">ความสูง</th>
+            <th style="text-align:center;">ตอบถูก</th>
+          </tr>
+        </thead>
+        <tbody id="host-live-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="view-join" class="container hidden">
+    <h2>เข้าสู่เกมกระโดด</h2>
+    <input type="text" id="input-pin" placeholder="รหัสห้อง 6 หลัก" maxlength="6" inputmode="numeric">
+    <input type="text" id="input-name" placeholder="ชื่อเล่นของคุณ" maxlength="12">
+    <button class="btn" id="btn-do-join">เข้าสู่ห้อง</button>
+    <button class="btn" style="background:#64748b;" onclick="switchScreen('view-mode')">ย้อนกลับ</button>
+  </div>
+
+  <div id="view-waiting" class="container hidden">
+    <h2>ห้องเตรียมพร้อม</h2>
+    <p>รหัสห้อง: <b id="wait-pin" style="color:#e01e37;"></b></p>
+    <p>ผู้เล่น: <b id="wait-name" style="color:#10b981;"></b></p>
+    <p style="color: #f59e0b; margin-top:16px; font-weight:bold;">รอสัญญาณปล่อยตัวจากผู้สอน...</p>
+  </div>
+
+  <div id="game-wrapper" class="hidden">
+    <canvas id="gameCanvas"></canvas>
+    <div class="game-top-bar">
+      <div class="stat-pill">พลังงาน: <span id="ui-energy" style="color:#d97706;">5</span></div>
+      <button class="btn-top-quiz" id="btn-open-quiz">คำถาม (+5)</button>
+      <div class="stat-pill"><span id="ui-timer">00:00</span></div>
+      <div class="stat-pill"><span id="ui-height" style="color:#0284c7;">0</span>m</div>
+      <button class="btn-music-toggle" id="btn-toggle-music">เปิดเสียง</button>
+    </div>
+    <div class="controls-bar">
+      <div class="touch-dpad-container">
+        <div class="touch-btn-arrow" id="btn-left">◀</div>
+        <div class="touch-btn-arrow" id="btn-right">▶</div>
+      </div>
+      <div class="touch-btn-jump" id="btn-jump">▲</div>
+    </div>
+    <div id="quiz-modal" class="hidden">
+      <div class="quiz-card">
+        <h3 id="quiz-title" style="margin:0 0 10px 0; color:#e01e37;">ตอบคำถามชาร์จพลังงาน</h3>
+        <p id="quiz-q-text" style="font-weight:bold; font-size:13px; margin:10px 0; color:#0f172a; text-align: left;"></p>
+        <div id="quiz-options-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-result" class="container hidden">
+    <h2 style="color:#d97706;">หมดเวลาการแข่งขัน!</h2>
+    <div id="cheer-message" style="margin: 10px 0; font-size: 14px; font-weight: bold; color: #9f1239;">ยินดีด้วยกับผลคะแนน!</div>
+    <table style="width:100%; font-size:13px; margin:12px 0;">
+      <thead>
+        <tr style="border-bottom:1px solid #cbd5e1;">
+          <th>ผู้เล่น</th>
+          <th style="text-align:center;">ความสูง</th>
+          <th style="text-align:center;">ตอบถูก</th>
+        </tr>
+      </thead>
+      <tbody id="result-leaderboard-body"></tbody>
+    </table>
+    <button class="btn" onclick="location.reload()">เริ่มเกมใหม่</button>
+    <button class="btn" style="background:#64748b;" onclick="location.href='index.html'">กลับหน้าหลัก (Hub)</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+    import { getDatabase, ref, set, update, onValue, push, remove, get } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA9RMnSd0hFU1g3dySplJI1wEkKZxERsc0",
+      authDomain: "hunter-cyber-mission.firebaseapp.com",
+      databaseURL: "https://hunter-cyber-mission-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "hunter-cyber-mission",
+      storageBucket: "hunter-cyber-mission.firebasestorage.app",
+      messagingSenderId: "1039291880413",
+      appId: "1:1039291880413:web:fe7815591317e09ad91c34",
+      measurementId: "G-HC5E16JK92"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const TEACHER_PASSWORD = "1234";
+
+    window.openTeacherModal = function() {
+      document.getElementById('input-teacher-pwd').value = "";
+      document.getElementById('teacher-auth-modal').classList.remove('hidden');
+    };
+    window.closeTeacherModal = function() {
+      document.getElementById('teacher-auth-modal').classList.add('hidden');
+    };
+    window.verifyTeacherPassword = function() {
+      const pwd = document.getElementById('input-teacher-pwd').value;
+      if (pwd === TEACHER_PASSWORD) {
+        closeTeacherModal();
+        window.onHostClick();
+      } else {
+        alert("รหัสผ่านไม่ถูกต้อง");
+      }
+    };
+
+    let quizData = [
+      { id: 1, q: "ปุ่มลัดใดใช้สำหรับ 'ปิดหน้าต่างเอกสารปัจจุบัน' ในโปรแกรม Word?", c: ["Ctrl + W", "Ctrl + S", "Ctrl + N", "Ctrl + O"], a: 0 },
+      { id: 2, q: "ขึ้นหน้าใหม่ (Page Break) ทันที ใช้ปุ่มลัดใด?", c: ["Shift + Enter", "Ctrl + Enter", "Alt + Enter", "Tab + Enter"], a: 1 },
+      { id: 3, q: "จัดข้อความให้ 'ชิดขวา' ใช้ปุ่มลัดใด?", c: ["Ctrl + L", "Ctrl + E", "Ctrl + R", "Ctrl + J"], a: 2 },
+      { id: 4, q: "นามสกุลไฟล์เอกสาร Word คืออะไร?", c: [".xlsx", ".pptx", ".docx", ".html"], a: 2 },
+      { id: 5, q: "ปุ่มลัดค้นหาคำ (Find) ในเอกสารคือปุ่มใด?", c: ["Ctrl + F", "Ctrl + H", "Ctrl + E", "Ctrl + K"], a: 0 }
+    ];
+
+    let currentPin = null;
+    let myPlayerId = null;
+    let playerName = "Player";
+    let isHost = false;
+    let energy = 5;
+    let currentMeters = 0;
+    let correctCount = 0;
+    let currentQ = 0;
+    let isGameOver = false;
+    let timerInterval = null;
+    let allPlayersData = {};
+
+    window.onHostClick = function() {
+      isHost = true;
+      switchScreen('view-host');
+      currentPin = Math.floor(100000 + Math.random() * 900000).toString();
+      document.getElementById('host-pin').innerText = currentPin;
+
+      const joinUrl = window.location.origin + window.location.pathname + '?pin=' + currentPin;
+      document.getElementById('qrcode').innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), { text: joinUrl, width: 120, height: 120 });
+
+      document.getElementById('btn-copy-link').onclick = () => {
+        navigator.clipboard.writeText(joinUrl);
+        alert('คัดลอกลิงก์เรียบร้อย');
+      };
+
+      set(ref(db, `rooms/${currentPin}`), { status: 'waiting' });
+
+      onValue(ref(db, `rooms/${currentPin}/players`), (snap) => {
+        allPlayersData = snap.val() || {};
+        const keys = Object.keys(allPlayersData);
+        document.getElementById('player-count').innerText = keys.length;
+        const list = document.getElementById('host-players');
+        list.innerHTML = "";
+        keys.forEach(k => {
+          const b = document.createElement('div');
+          b.className = 'badge-player';
+          b.innerText = allPlayersData[k].name;
+          list.appendChild(b);
+        });
+        document.getElementById('btn-start').disabled = keys.length === 0;
+        renderHostTable();
+      });
+
+      onValue(ref(db, `rooms/${currentPin}/status`), (snap) => {
+        if (snap.val() === 'ended') showFinalLeaderboard();
+      });
+    };
+
+    document.getElementById('btn-start').onclick = async () => {
+      const minutes = parseInt(document.getElementById('select-duration').value) || 3;
+      const initialEnergy = parseInt(document.getElementById('select-energy').value) || 5;
+      const endTime = Date.now() + (minutes * 60 * 1000);
+
+      await update(ref(db, `rooms/${currentPin}`), {
+        status: 'playing',
+        endTime: endTime,
+        initialEnergy: initialEnergy
+      });
+
+      switchScreen('view-host-live');
+
+      timerInterval = setInterval(() => {
+        const remainSec = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+        const m = Math.floor(remainSec / 60);
+        const s = remainSec % 60;
+        document.getElementById('host-timer-text').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        if (remainSec <= 0) {
+          clearInterval(timerInterval);
+          update(ref(db, `rooms/${currentPin}`), { status: 'ended' });
+        }
+      }, 500);
+    };
+
+    document.getElementById('btn-do-join').onclick = async () => {
+      isHost = false;
+      const pin = document.getElementById('input-pin').value.trim();
+      const name = document.getElementById('input-name').value.trim();
+      if (!pin || !name) return alert('กรุณากรอก PIN และชื่อ');
+
+      const roomSnap = await get(ref(db, `rooms/${pin}`));
+      const room = roomSnap.val();
+      if (!room || room.status !== 'waiting') return alert('ไม่พบห้องนี้ หรือห้องกำลังแข่งขันอยู่');
+
+      playerName = name;
+      currentPin = pin;
+      const pRef = push(ref(db, `rooms/${pin}/players`));
+      myPlayerId = pRef.key;
+
+      set(pRef, { name: playerName, height: 0, x: 200, y: 400, correct: 0 });
+      document.getElementById('wait-pin').innerText = pin;
+      document.getElementById('wait-name').innerText = name;
+      switchScreen('view-waiting');
+
+      onValue(ref(db, `rooms/${pin}`), (snap) => {
+        const liveRoom = snap.val();
+        if (!liveRoom) return;
+        allPlayersData = liveRoom.players || {};
+
+        if (liveRoom.status === 'playing' && document.getElementById('game-wrapper').classList.contains('hidden')) {
+          energy = liveRoom.initialEnergy || 5;
+          document.getElementById('ui-energy').innerText = energy;
+          switchScreen('game-wrapper');
+          initGame();
+        }
+        if (liveRoom.status === 'ended') {
+          showFinalLeaderboard();
+        }
+      });
+    };
+
+    function renderHostTable() {
+      const tbody = document.getElementById('host-live-table');
+      if (!tbody) return;
+      tbody.innerHTML = "";
+      const sorted = Object.values(allPlayersData).sort((a,b) => (b.height || 0) - (a.height || 0));
+      if (sorted.length > 0) {
+        document.getElementById('leader-name').innerText = sorted[0].name;
+        document.getElementById('leader-meters').innerText = (sorted[0].height || 0) + " m";
+      }
+      sorted.forEach(p => {
+        tbody.innerHTML += `<tr><td style="padding:6px;">${p.name}</td><td style="text-align:center;">${p.height || 0} m</td><td style="text-align:center;">${p.correct || 0}</td></tr>`;
+      });
+    }
+
+    function showFinalLeaderboard() {
+      isGameOver = true;
+      switchScreen('view-result');
+      const tbody = document.getElementById('result-leaderboard-body');
+      tbody.innerHTML = "";
+      const sorted = Object.values(allPlayersData).sort((a,b) => (b.height || 0) - (a.height || 0));
+      sorted.forEach(p => {
+        tbody.innerHTML += `<tr><td>${p.name}</td><td style="text-align:center;">${p.height || 0} m</td><td style="text-align:center;">${p.correct || 0}</td></tr>`;
+      });
+    }
+
+    function triggerQuizModal() {
+      if (isGameOver) return;
+      const q = quizData[currentQ % quizData.length];
+      document.getElementById('quiz-q-text').innerText = q.q;
+      const list = document.getElementById('quiz-options-list');
+      list.innerHTML = "";
+      q.c.forEach((choice, idx) => {
+        const b = document.createElement('button');
+        b.className = 'quiz-option';
+        b.innerText = choice;
+        b.onclick = () => {
+          if (idx === q.a) {
+            energy += 5;
+            correctCount++;
+            document.getElementById('ui-energy').innerText = energy;
+            document.getElementById('quiz-modal').classList.add('hidden');
+            currentQ++;
+            if (currentPin && myPlayerId) {
+              update(ref(db, `rooms/${currentPin}/players/${myPlayerId}`), { correct: correctCount });
+            }
+          } else {
+            alert('คำตอบยังไม่ถูกต้อง ลองดูใหม่ครับ');
+          }
+        };
+        list.appendChild(b);
+      });
+      document.getElementById('quiz-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('btn-open-quiz').onclick = triggerQuizModal;
+
+    function initGame() {
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const player = { x: canvas.width / 2 - 15, y: canvas.height - 120, w: 30, h: 36, vx: 0, vy: 0, grounded: false };
+      let cameraY = 0;
+      const platforms = [{ x: 0, y: canvas.height - 50, w: canvas.width, h: 50 }];
+      
+      for (let i = 0; i < 200; i++) {
+        platforms.push({
+          x: Math.random() * (canvas.width - 100),
+          y: canvas.height - 120 - (i * 60),
+          w: 90,
+          h: 18
+        });
+      }
+
+      const keys = { left: false, right: false };
+      document.getElementById('btn-left').onmousedown = () => keys.left = true;
+      document.getElementById('btn-left').onmouseup = () => keys.left = false;
+      document.getElementById('btn-right').onmousedown = () => keys.right = true;
+      document.getElementById('btn-right').onmouseup = () => keys.right = false;
+      
+      document.getElementById('btn-left').ontouchstart = (e) => { e.preventDefault(); keys.left = true; };
+      document.getElementById('btn-left').ontouchend = () => keys.left = false;
+      document.getElementById('btn-right').ontouchstart = (e) => { e.preventDefault(); keys.right = true; };
+      document.getElementById('btn-right').ontouchend = () => keys.right = false;
+
+      const doJump = () => {
+        if (player.grounded && energy > 0) {
+          player.vy = -14;
+          player.grounded = false;
+          energy--;
+          document.getElementById('ui-energy').innerText = energy;
+        } else if (energy <= 0) {
+          triggerQuizModal();
+        }
+      };
+
+      document.getElementById('btn-jump').onclick = doJump;
+      document.getElementById('btn-jump').ontouchstart = (e) => { e.preventDefault(); doJump(); };
+
+      let syncTime = 0;
+      function loop() {
+        if (isGameOver) return;
+        if (keys.left) player.vx = -4.5;
+        else if (keys.right) player.vx = 4.5;
+        else player.vx = 0;
+
+        player.x += player.vx;
+        player.vy += 0.6;
+        player.y += player.vy;
+        player.grounded = false;
+
+        platforms.forEach(p => {
+          if (player.x + player.w > p.x && player.x < p.x + p.w &&
+              player.y + player.h >= p.y && player.y + player.h <= p.y + 12 && player.vy >= 0) {
+            player.grounded = true;
+            player.vy = 0;
+            player.y = p.y - player.h;
+          }
+        });
+
+        cameraY += ((player.y - canvas.height * 0.6) - cameraY) * 0.1;
+        currentMeters = Math.max(0, Math.floor(((canvas.height - 120) - player.y) / 10));
+        document.getElementById('ui-height').innerText = currentMeters;
+
+        if (Date.now() - syncTime > 200 && currentPin && myPlayerId) {
+          syncTime = Date.now();
+          update(ref(db, `rooms/${currentPin}/players/${myPlayerId}`), { height: currentMeters });
+        }
+
+        ctx.fillStyle = '#e0f2fe';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = '#f43f5e';
+        platforms.forEach(p => {
+          ctx.fillRect(p.x, p.y - cameraY, p.w, p.h);
+        });
+
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(player.x, player.y - cameraY, player.w, player.h);
+
+        requestAnimationFrame(loop);
+      }
+      loop();
+    }
+  </script>
+</body>
+</html>      padding: clamp(16px, 3.5vw, 24px);
       max-width: 480px;
       width: min(90%, 480px);
       text-align: center;
